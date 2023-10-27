@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE xml>
+<project name="Sabre" default="build">
+	<target name="build" depends="clean,javadoc,jar"/>
+	<target name="clean">
+		<delete dir="doc"/>
+		<delete dir="lib"/>
+	</target>
+    <target name="javadoc">
+    	<javadoc
+    		doctitle="Sabre Narrative Planner Documentation"
+    		classpath="."
+    		sourcepath="src"
+    		destdir="doc"
+    		packagenames="
+    			edu.uky.cs.nil.sabre,
+    			edu.uky.cs.nil.sabre.util,
+    			edu.uky.cs.nil.sabre.io,
+	    		edu.uky.cs.nil.sabre.logic,
+    			edu.uky.cs.nil.sabre.graph,
+    			edu.uky.cs.nil.sabre.etree,
+    			edu.uky.cs.nil.sabre.comp,
+	    		edu.uky.cs.nil.sabre.search,
+	   			edu.uky.cs.nil.sabre.prog,
+    			edu.uky.cs.nil.sabre.hg
+    		"
+    		access="protected"
+    		source="11"
+    		use="true"
+    		author="true"
+    		version="true"
+    	/>
+    </target>
+	<target name="jar">
+        <jar destfile="lib/sabre.jar">
+        	<fileset dir="src"/>
+        	<fileset dir="bin"/>
+            <manifest>
+                <attribute name="Main-Class" value="edu.uky.cs.nil.sabre.Main"/>
+            </manifest>
+        </jar>
+    </target>
+</project>
