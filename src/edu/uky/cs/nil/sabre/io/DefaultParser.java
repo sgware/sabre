@@ -1,6 +1,7 @@
 package edu.uky.cs.nil.sabre.io;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 import edu.uky.cs.nil.sabre.*;
 import edu.uky.cs.nil.sabre.Character;
@@ -59,8 +60,25 @@ public class DefaultParser extends Parser {
 	/** Keyword for {@link True#TRUE true} */
 	public static final String TRUE_KEYWORD = "True";
 	
+	/** Keyword for the opening bracket of a logical expression in brackets */
+	public static final String LOGICAL_OPEN_BRACKET = "(";
+	
+	/** Keyword for the closing bracket of a logical expression in brackets */
+	public static final String LOGICAL_CLOSE_BRACKET = ")";
+	
 	/** Keyword for {@link Clause#NULL the null clause} */
 	public static final String NULL_CLAUSE_KEYWORD = "nil";
+	
+	/** Keyword for the start of a list of parameters or arguments */
+	public static final String PARAMETER_LIST_OPEN_BRACKET = "(";
+	
+	/** Keyword for the end of a list of parameters or arguments */
+	public static final String PARAMETER_LIST_CLOSE_BRACKET = ")";
+	
+	/**
+	 * Keyword for that separates elements in a list of parameters or arguments
+	 */
+	public static final String PARAMETER_SEPARATOR = ",";
 	
 	/** Keyword for {@link Epistemic epistemic modal expressions} */
 	public static final String EPISTEMIC_KEYWORD = "believes";
@@ -170,6 +188,18 @@ public class DefaultParser extends Parser {
 	/** Keyword for beginning {@link Trigger a trigger} definition */
 	public static final String TRIGGER_DEFINITION_KEYWORD = "trigger";
 	
+	/** Keyword that starts the block of definitions of an event's elements */
+	public static final String EVENT_DEFINITION_OPEN_BRACKET = "{";
+	
+	/** Keyword that end the block of definitions of an event's elements */
+	public static final String EVENT_DEFINITION_CLOSE_BRACKET = "}";
+	
+	/**
+	 * Keyword to the right of a definition's label that indicates the
+	 * definition appears to the right of this keyword
+	 */
+	public static final String DEFINITION_INDICATOR = ":";
+	
 	/**
 	 * Keyword for beginning {@link Event#getPrecondition() an event
 	 * precondition}
@@ -196,6 +226,12 @@ public class DefaultParser extends Parser {
 	 * utility expression}
 	 */
 	public static final String UTILITY_DEFINITION_KEYWORD = "utility";
+	
+	/** Keyword used to signify a goal has been achieved */
+	public static final String GOAL_KEYWORD = "goal";
+	
+	/** Keyword used to indent branches in a {@link Solution solution} */
+	public static final String BRANCH_INDENT_KEYWORD = "|";
 	
 	/** Non-terminal symbol representing {@link Object a Java object} */
 	protected static final NonTerminal OBJECT = new NonTerminal(Object.class, "an object");
@@ -706,19 +742,19 @@ public class DefaultParser extends Parser {
 	/**
 	 * Non-terminal symbol representing the definition of {@link Event an event}
 	 */
-	protected static final NonTerminal EVENT_DEFINITION = new NonTerminal(Event.class, "an event definition");
+	protected static final NonTerminal EVENT_DEFINITION = new NonTerminal("an event definition");
 	
 	/**
 	 * Non-terminal symbol representing the definition of {@link Action an
 	 * action}
 	 */
-	protected static final NonTerminal ACTION_DEFINITION = new NonTerminal(Action.class, "an action definition");
+	protected static final NonTerminal ACTION_DEFINITION = new NonTerminal("an action definition");
 	
 	/**
 	 * Non-terminal symbol representing the definition of {@link Trigger a
 	 * trigger}
 	 */
-	protected static final NonTerminal TRIGGER_DEFINITION = new NonTerminal(Trigger.class, "a trigger definition");
+	protected static final NonTerminal TRIGGER_DEFINITION = new NonTerminal("a trigger definition");
 	
 	/**
 	 * Non-terminal symbol representing the definition of some part of {@link
@@ -785,6 +821,80 @@ public class DefaultParser extends Parser {
 	 */
 	protected static final NonTerminal INITIAL_STATE_DEFINITION = new NonTerminal("a proposition describing the initial state");
 	
+	/** Non-terminal symbol representing an {@link Event event} */
+	protected static final NonTerminal EVENT = new NonTerminal(Event.class, "an event");
+	
+	/** Non-terminal symbol representing an {@link Action action} */
+	protected static final NonTerminal ACTION = new NonTerminal(Action.class, "an action");
+	
+	/** Non-terminal symbol representing a {@link Trigger trigger} */
+	protected static final NonTerminal TRIGGER = new NonTerminal(Trigger.class, "a trigger");
+	
+	/** Non-terminal symbol representing a {@link Plan plan} */
+	protected static final NonTerminal PLAN = new NonTerminal(Plan.class, "a plan");
+	
+	/**
+	 * Non-terminal symbol representing a {@link HeadPlan plan where actions are
+	 * prepended onto the beginning}
+	 */
+	protected static final NonTerminal HEAD_PLAN = new NonTerminal(HeadPlan.class, "a plan");
+	
+	/**
+	 * Non-terminal symbol representing {@link HeadPlan#EMPTY the empty head
+	 * plan}
+	 */
+	protected static final NonTerminal EMPTY_HEAD_PLAN = new NonTerminal("an empty plan");
+	
+	/**
+	 * Non-terminal symbol representing {@link HeadPlan a head plan with one or
+	 * more actions}
+	 */
+	protected static final NonTerminal NON_EMPTY_HEAD_PLAN = new NonTerminal("a plan with one or more actions");
+	
+	/** Non-terminal symbol representing a {@link Solution solution} */
+	protected static final NonTerminal SOLUTION = new NonTerminal(Solution.class, "a solution");
+	
+	/**
+	 * Non-terminal symbol representing the author's goal or a character's goal
+	 * in a {@link Solution solution}
+	 */
+	protected static final NonTerminal SOLUTION_GOAL = new NonTerminal("a goal");
+	
+	/**
+	 * Non-terminal symbol representing the author's goal at the end of a {@link
+	 * Solution solution}
+	 */
+	protected static final NonTerminal SOLUTION_AUTHOR_GOAL = new NonTerminal("the author goal");
+	
+	/**
+	 * Non-terminal symbol representing a character's goal in a {@link Solution
+	 * solution}
+	 */
+	protected static final NonTerminal SOLUTION_CHARACTER_GOAL = new NonTerminal("a character goal");
+	
+	/**
+	 * Non-terminal symbol representing a rest of a {@link Solution solution}
+	 */
+	protected static final NonTerminal SOLUTION_TAIL = new NonTerminal("the rest of a solution");
+	
+	/**
+	 * Non-terminal symbol representing a character's goal followed by the rest
+	 * of a {@link Solution solution}
+	 */
+	protected static final NonTerminal SOLUTION_CHARACTER_GOAL_WITH_TAIL = new NonTerminal("a character's goal");
+	
+	/**
+	 * Non-terminal symbol representing an action in a {@link Solution solution}
+	 * followed by the rest of a solution
+	 */
+	protected static final NonTerminal SOLUTION_PLAN = new NonTerminal("a solution plan");
+	
+	/**
+	 * Non-terminal symbol representing a branch explaining an action in a
+	 * {@link Solution solution}
+	 */
+	protected static final NonTerminal SOLUTION_BRANCH = new NonTerminal("a solution branch");
+	
 	@FunctionalInterface
 	private interface TypedBuilder extends Builder {
 		
@@ -805,7 +915,7 @@ public class DefaultParser extends Parser {
 		
 		public QuantifiedBuilder(String keyword, Quantified.Quantifier quantifier) {
 			this.quantifier = quantifier;
-			this.pattern = new Sentinel(keyword, "(", VARIABLE_DEFINITION, ")", BOOLEAN_EXPRESSION);
+			this.pattern = new Sentinel(keyword, PARAMETER_LIST_OPEN_BRACKET, VARIABLE_DEFINITION, PARAMETER_LIST_CLOSE_BRACKET, BOOLEAN_EXPRESSION);
 		}
 
 		@Override
@@ -851,7 +961,7 @@ public class DefaultParser extends Parser {
 		
 		public ArithmeticExpansionBuilder(String keyword, ArithmeticExpansion.Operator operator) {
 			this.operator = operator;
-			this.pattern = new Sentinel(keyword, "(", VARIABLE_DEFINITION, ")", NUMBER_EXPRESSION);
+			this.pattern = new Sentinel(keyword, PARAMETER_LIST_OPEN_BRACKET, VARIABLE_DEFINITION, PARAMETER_LIST_CLOSE_BRACKET, NUMBER_EXPRESSION);
 		}
 
 		@Override
@@ -942,7 +1052,7 @@ public class DefaultParser extends Parser {
 		set(TYPE, Terminal.NAME, new DefinedObjectBuilder(Type.class));
 		// Expression
 		setRule(EXPRESSION, new Selection(
-			new Sentinel("(", Expression.class, ")"),
+			new Sentinel(LOGICAL_OPEN_BRACKET, Expression.class, LOGICAL_CLOSE_BRACKET),
 			PARAMETER,
 			FLUENT,
 			EPISTEMIC,
@@ -977,7 +1087,7 @@ public class DefaultParser extends Parser {
 		set(VARIABLE, Terminal.NAME, new DefinedObjectBuilder(Variable.class));
 		// Signature
 		setRule(SIGNATURE,
-			new Sentinel(Terminal.NAME, "(", new List(PARAMETER, ","), ")")
+			new Sentinel(Terminal.NAME, PARAMETER_LIST_OPEN_BRACKET, new List(PARAMETER, PARAMETER_SEPARATOR), PARAMETER_LIST_CLOSE_BRACKET)
 		);
 		setBuilder(SIGNATURE, (parser, tree, definitions) -> {
 			String name = parser.build(tree.get(0), String.class);
@@ -991,7 +1101,7 @@ public class DefaultParser extends Parser {
 			EPISTEMIC_FLUENT, NONEPISTEMIC_FLUENT
 		));
 		setRule(EPISTEMIC_FLUENT,
-			new Sentinel(EPISTEMIC_KEYWORD, "(", CHARACTER_PARAMETER, ",", Fluent.class, ")")
+			new Sentinel(EPISTEMIC_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, CHARACTER_PARAMETER, PARAMETER_SEPARATOR, Fluent.class, PARAMETER_LIST_CLOSE_BRACKET)
 		);
 		setBuilder(EPISTEMIC_FLUENT, (parser, tree, definitions) -> {
 			return parser.build(tree.get(1), Fluent.class, definitions).prepend(parser.build(tree.get(0), Parameter.class, definitions));
@@ -1004,7 +1114,7 @@ public class DefaultParser extends Parser {
 		});
 		// Epistemic
 		setRule(EPISTEMIC,
-			new Sentinel(EPISTEMIC_KEYWORD, "(", CHARACTER_PARAMETER, ",", Expression.class, ")")
+			new Sentinel(EPISTEMIC_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, CHARACTER_PARAMETER, PARAMETER_SEPARATOR, Expression.class, PARAMETER_LIST_CLOSE_BRACKET)
 		);
 		setBuilder(EPISTEMIC, (parser, tree, definitions) -> {
 			return new Epistemic(parser.build(tree.get(0), Parameter.class, definitions), parser.build(tree.get(1), Expression.class, definitions));
@@ -1098,10 +1208,10 @@ public class DefaultParser extends Parser {
 			}
 		});
 		setRule(CONDITIONAL_FIRST_BRANCH,
-			new Sentinel(CONDITIONAL_FIRST_BRANCH_KEYWORD, "(", BOOLEAN_EXPRESSION, ")", Expression.class)
+			new Sentinel(CONDITIONAL_FIRST_BRANCH_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET, Expression.class)
 		);
 		setRule(CONDITIONAL_MIDDLE_BRANCH,
-			new Sentinel(CONDITIONAL_MIDDLE_BRANCH_KEYWORD, "(", BOOLEAN_EXPRESSION, ")", Expression.class)
+			new Sentinel(CONDITIONAL_MIDDLE_BRANCH_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET, Expression.class)
 		);
 		setRule(CONDITIONAL_LAST_BRANCH,
 			new Sentinel(CONDITIONAL_LAST_BRANCH_KEYWORD, Expression.class)
@@ -1211,7 +1321,7 @@ public class DefaultParser extends Parser {
 			CONDITIONAL_EFFECT, NONCONDITIONAL_EFFECT
 		));
 		setRule(CONDITIONAL_EFFECT,
-			new Sentinel(CONDITIONAL_EFFECT_KEYWORD, "(", BOOLEAN_EXPRESSION, ")", NONCONDITIONAL_EFFECT)
+			new Sentinel(CONDITIONAL_EFFECT_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET, NONCONDITIONAL_EFFECT)
 		);
 		setBuilder(CONDITIONAL_EFFECT, (parser, tree, definitions) -> {
 			Expression condition = parser.build(tree.get(0), Expression.class, definitions);
@@ -1219,7 +1329,7 @@ public class DefaultParser extends Parser {
 			return new Effect(condition, effect.fluent, effect.value);
 		});
 		setRule(NONCONDITIONAL_EFFECT, new Selection(
-			new Sentinel("(", NONCONDITIONAL_EFFECT, ")"), new Sentinel(Fluent.class, ASSIGNMENT_KEYWORD, Expression.class)
+			new Sentinel(LOGICAL_OPEN_BRACKET, NONCONDITIONAL_EFFECT, LOGICAL_CLOSE_BRACKET), new Sentinel(Fluent.class, ASSIGNMENT_KEYWORD, Expression.class)
 		));
 		setBuilder(NONCONDITIONAL_EFFECT, (parser, tree, definitions) -> {
 			return new Effect(parser.build(tree.get(0), Fluent.class, definitions), parser.build(tree.get(1), Expression.class, definitions));
@@ -1270,7 +1380,7 @@ public class DefaultParser extends Parser {
 		// Universe
 		setRule(TYPE_DEFINITION, new Selection(
 			new Sentinel(TYPE_DEFINITION_KEYWORD, Terminal.NAME),
-			new Sentinel(TYPE_DEFINITION_KEYWORD, Terminal.NAME, ":", new List(Terminal.NAME, ",", 1, List.NO_LIMIT))
+			new Sentinel(TYPE_DEFINITION_KEYWORD, Terminal.NAME, INHERITANCE_KEYWORD, new List(Terminal.NAME, PARAMETER_SEPARATOR, 1, List.NO_LIMIT))
 		));
 		setBuilder(TYPE_DEFINITION, (parser, tree, definitions) -> {
 			Universe universe = definitions.get(Universe.class);
@@ -1288,7 +1398,7 @@ public class DefaultParser extends Parser {
 			return builder.getUniverse();
 		});
 		setRule(ENTITY_DEFINITION,
-			new Sentinel(ENTITY_DEFINITION_KEYWORD, Terminal.NAME, INHERITANCE_KEYWORD, new List(Terminal.NAME, ",", 1, List.NO_LIMIT))
+			new Sentinel(ENTITY_DEFINITION_KEYWORD, Terminal.NAME, INHERITANCE_KEYWORD, new List(Terminal.NAME, PARAMETER_SEPARATOR, 1, List.NO_LIMIT))
 		);
 		setBuilder(ENTITY_DEFINITION, (parser, tree, definitions) -> {
 			Universe universe = definitions.get(Universe.class);
@@ -1307,7 +1417,7 @@ public class DefaultParser extends Parser {
 		});
 		// Signature
 		setRule(SIGNATURE_DEFINITION,
-			new Sentinel(Terminal.NAME, "(", new List(PARAMETER_DEFINITION, ","), ")")
+			new Sentinel(Terminal.NAME, PARAMETER_LIST_OPEN_BRACKET, new List(PARAMETER_DEFINITION, PARAMETER_SEPARATOR), PARAMETER_LIST_CLOSE_BRACKET)
 		);
 		setBuilder(SIGNATURE_DEFINITION, (parser, tree, definitions) -> {
 			String name = parser.build(tree.get(0), String.class);
@@ -1343,7 +1453,7 @@ public class DefaultParser extends Parser {
 			ACTION_DEFINITION, TRIGGER_DEFINITION
 		));
 		setRule(ACTION_DEFINITION,
-			new Sentinel(ACTION_DEFINITION_KEYWORD, SIGNATURE_DEFINITION, "{", new List(ACTION_ELEMENT, ";"), "}")
+			new Sentinel(ACTION_DEFINITION_KEYWORD, SIGNATURE_DEFINITION, EVENT_DEFINITION_OPEN_BRACKET, new List(ACTION_ELEMENT, DEFINITION_SEPARATOR), EVENT_DEFINITION_CLOSE_BRACKET)
 		);
 		setBuilder(ACTION_DEFINITION, new Builder() {
 			@Override
@@ -1379,7 +1489,7 @@ public class DefaultParser extends Parser {
 			EVENT_PRECONDITION, EVENT_EFFECT, ACTION_CONSENTING, ACTION_OBSERVING
 		));
 		setRule(TRIGGER_DEFINITION,
-			new Sentinel(TRIGGER_DEFINITION_KEYWORD, SIGNATURE_DEFINITION, "{", new List(TRIGGER_ELEMENT, ";"), "}")
+			new Sentinel(TRIGGER_DEFINITION_KEYWORD, SIGNATURE_DEFINITION, EVENT_DEFINITION_OPEN_BRACKET, new List(TRIGGER_ELEMENT, DEFINITION_SEPARATOR), EVENT_DEFINITION_CLOSE_BRACKET)
 		);
 		setBuilder(TRIGGER_DEFINITION, (parser, tree, definitions) -> {
 			ProblemBuilder builder = definitions.require(ProblemBuilder.class);
@@ -1402,16 +1512,16 @@ public class DefaultParser extends Parser {
 			EVENT_PRECONDITION, EVENT_EFFECT
 		));
 		setRule(EVENT_PRECONDITION,
-			new Sentinel(PRECONDITION_KEYWORD, ":", BOOLEAN_EXPRESSION)
+			new Sentinel(PRECONDITION_KEYWORD, DEFINITION_INDICATOR, BOOLEAN_EXPRESSION)
 		);
 		setRule(EVENT_EFFECT,
-			new Sentinel(EFFECT_KEYWORD, ":", BOOLEAN_EXPRESSION)
+			new Sentinel(EFFECT_KEYWORD, DEFINITION_INDICATOR, BOOLEAN_EXPRESSION)
 		);
 		setRule(ACTION_CONSENTING,
-			new Sentinel(CONSENTING_KEYWORD, ":", CHARACTER_LIST)
+			new Sentinel(CONSENTING_KEYWORD, DEFINITION_INDICATOR, CHARACTER_LIST)
 		);
 		setRule(CHARACTER_LIST, new Selection(
-			new Sentinel("(", CHARACTER_LIST, ")"), new List(CHARACTER_PARAMETER, ",")
+			new Sentinel(PARAMETER_LIST_OPEN_BRACKET, CHARACTER_LIST, PARAMETER_LIST_CLOSE_BRACKET), new List(CHARACTER_PARAMETER, PARAMETER_SEPARATOR)
 		));
 		setBuilder(CHARACTER_LIST, (parser, tree, definitions) -> {
 			Parameter[] characters = new Parameter[tree.size()];
@@ -1420,7 +1530,7 @@ public class DefaultParser extends Parser {
 			return new ImmutableArray<>(characters);
 		});
 		setRule(ACTION_OBSERVING,
-			new Sentinel(OBSERVING_KEYWORD, "(", VARIABLE_DEFINITION, ")", ":", BOOLEAN_EXPRESSION)
+			new Sentinel(OBSERVING_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, VARIABLE_DEFINITION, PARAMETER_LIST_CLOSE_BRACKET, DEFINITION_INDICATOR, BOOLEAN_EXPRESSION)
 		);
 		setBuilder(ACTION_OBSERVING, (parser, tree, definitions) -> {
 			Variable variable = parser.build(tree.get(0), Variable.class, definitions);
@@ -1432,13 +1542,13 @@ public class DefaultParser extends Parser {
 			AUTHOR_UTILITY_DEFINITION, CHARACTER_UTILITY_DEFINITION
 		));
 		setRule(AUTHOR_UTILITY_DEFINITION,
-			new Sentinel(UTILITY_DEFINITION_KEYWORD, "(", ")", ":", Expression.class)
+			new Sentinel(UTILITY_DEFINITION_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, PARAMETER_LIST_CLOSE_BRACKET, DEFINITION_INDICATOR, Expression.class)
 		);
 		setBuilder(AUTHOR_UTILITY_DEFINITION, (parser, tree, definitions) -> {
 			return definitions.get(ProblemBuilder.class).setUtility(parser.build(tree.get(0), Expression.class, definitions));
 		});
 		setRule(CHARACTER_UTILITY_DEFINITION,
-			new Sentinel(UTILITY_DEFINITION_KEYWORD, "(", CHARACTER, ")", ":", Expression.class)
+			new Sentinel(UTILITY_DEFINITION_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, CHARACTER, PARAMETER_LIST_CLOSE_BRACKET, DEFINITION_INDICATOR, Expression.class)
 		);
 		setBuilder(CHARACTER_UTILITY_DEFINITION, (parser, tree, definitions) -> {
 			return definitions.get(ProblemBuilder.class).setUtility(parser.build(tree.get(0), Character.class, definitions), parser.build(tree.get(1), Expression.class, definitions));
@@ -1447,6 +1557,85 @@ public class DefaultParser extends Parser {
 		setRule(INITIAL_STATE_DEFINITION, EXPRESSION);
 		setBuilder(INITIAL_STATE_DEFINITION, (parser, tree, definitions) -> {
 			return definitions.get(ProblemBuilder.class).addToInitialState(parser.build(tree.get(0), Expression.class, definitions));
+		});
+		// Event
+		setRule(EVENT, new Selection(ACTION, TRIGGER));
+		setRule(ACTION,
+			SIGNATURE
+		);
+		setBuilder(ACTION, (parser, tree, definitions) -> {
+			Signature signature = parser.build(tree.get(0), Signature.class, definitions);
+			return definitions.require(Problem.class).getAction(signature);
+		});
+		setRule(TRIGGER,
+			SIGNATURE
+		);
+		setBuilder(TRIGGER, (parser, tree, definitions) -> {
+			Signature signature = parser.build(tree.get(0), Signature.class, definitions);
+			return definitions.require(Problem.class).getTrigger(signature);
+		});
+		// Plan
+		setRule(PLAN, new Selection(
+			HEAD_PLAN
+		));
+		setRule(HEAD_PLAN, new Selection(
+			EMPTY_HEAD_PLAN, NON_EMPTY_HEAD_PLAN
+		));
+		setRule(EMPTY_HEAD_PLAN,
+			Terminal.NOTHING
+		);
+		setBuilder(EMPTY_HEAD_PLAN, (parser, tree, definitions) -> {
+			return HeadPlan.EMPTY;
+		});
+		setRule(NON_EMPTY_HEAD_PLAN,
+			new Sentinel(Terminal.NAME, PARAMETER_LIST_OPEN_BRACKET, new List(PARAMETER, PARAMETER_SEPARATOR), PARAMETER_LIST_CLOSE_BRACKET, HEAD_PLAN)
+		);
+		setBuilder(NON_EMPTY_HEAD_PLAN, (parser, tree, definitions) -> {
+			@SuppressWarnings("unchecked")
+			HeadPlan<Action> plan = parser.build(tree.get(tree.size() - 1), HeadPlan.class, definitions);
+			String name = parser.build(tree.get(0), String.class, definitions);
+			Parameter[] arguments = new Parameter[tree.size() - 2];
+			for(int i=0; i<arguments.length; i++)
+				arguments[i] = parser.build(tree.get(i + 1), Parameter.class, definitions);
+			Action action = definitions.require(Problem.class).getAction(new Signature(name, arguments));
+			return plan.prepend(action);
+		});
+		// Solution
+		setRule(SOLUTION, new Selection(
+			SOLUTION_PLAN
+		));
+		setRule(SOLUTION_GOAL, new Selection(
+			SOLUTION_AUTHOR_GOAL, SOLUTION_CHARACTER_GOAL
+		));
+		setRule(SOLUTION_AUTHOR_GOAL,
+			new Sentinel(GOAL_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET)
+		);
+		setBuilder(SOLUTION_AUTHOR_GOAL, (parser, tree, definitions) -> {
+			Expression goal = parser.build(tree.get(0), Expression.class, definitions);
+			return new SolutionGoal<>(goal);
+		});
+		setRule(SOLUTION_CHARACTER_GOAL,
+			new Sentinel(GOAL_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, CHARACTER, PARAMETER_SEPARATOR, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET)
+		);
+		setBuilder(SOLUTION_CHARACTER_GOAL, (parser, tree, definitions) -> {
+			Character character = parser.build(tree.get(0), Character.class, definitions);
+			Expression goal = parser.build(tree.get(1), Expression.class, definitions);
+			return new SolutionGoal<>(character, goal);
+		});
+		setRule(SOLUTION_TAIL, new Selection(
+			SOLUTION_AUTHOR_GOAL, SOLUTION_CHARACTER_GOAL_WITH_TAIL, SOLUTION_PLAN, SOLUTION_BRANCH
+		));
+		setRule(SOLUTION_CHARACTER_GOAL_WITH_TAIL,
+			new Sentinel(GOAL_KEYWORD, PARAMETER_LIST_OPEN_BRACKET, CHARACTER, PARAMETER_SEPARATOR, BOOLEAN_EXPRESSION, PARAMETER_LIST_CLOSE_BRACKET, SOLUTION_TAIL)
+		);
+		setRule(SOLUTION_PLAN,
+			new Sentinel(Terminal.NAME, PARAMETER_LIST_OPEN_BRACKET, new List(PARAMETER, PARAMETER_SEPARATOR), PARAMETER_LIST_CLOSE_BRACKET, SOLUTION_TAIL)
+		);
+		setRule(SOLUTION_BRANCH,
+			new Sentinel(BRANCH_INDENT_KEYWORD, SOLUTION_TAIL)
+		);
+		setBuilder(SOLUTION, (parser, tree, definitions) -> {
+			return parseSolution(parser, tree, definitions);
 		});
 	}
 	
@@ -1460,5 +1649,61 @@ public class DefaultParser extends Parser {
 			return "";
 		else
 			return tree.tokens.first.comment;
+	}
+	
+	private final Solution<Action> parseSolution(Parser parser, ParseTree tree, Definitions definitions) throws ParseException {
+		return buildSolution(parser, clipSolution(tree.tokens), definitions);
+	}
+	
+	private final ArrayList<ImmutableList<Token>> clipSolution(ImmutableList<Token> tokens) {
+		ArrayList<ImmutableList<Token>> clips = new ArrayList<>();
+		while(tokens.size() > 0) {
+			int length = 0;
+			int nesting = 0;
+			while(true) {
+				if(tokens.get(length).value.equals(PARAMETER_LIST_OPEN_BRACKET))
+					nesting++;
+				else if(tokens.get(length).value.equals(PARAMETER_LIST_CLOSE_BRACKET)) {
+					nesting--;
+					if(nesting == 0)
+						break;
+				}
+				length++;
+			}
+			length++;
+			clips.add(0, Pattern.clip(tokens, length));
+			for(int i=0; i<length; i++)
+				tokens = tokens.rest;
+		}
+		return clips;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private final Solution<Action> buildSolution(Parser parser, ArrayList<ImmutableList<Token>> clips, Definitions definitions) throws ParseException {
+		Solution<Action> solution = parser.build(parser.match(SOLUTION_GOAL, clips.remove(0)), Solution.class, definitions);
+		ArrayList<Solution<Action>> explanations = new ArrayList<>();
+		ArrayList<ImmutableList<Token>> nested = new ArrayList<>();
+		for(ImmutableList<Token> clip : clips) {
+			if(clip.first.value.equals(BRANCH_INDENT_KEYWORD)) {
+				clip = clip.rest;
+				if(clip.first.value.equals(GOAL_KEYWORD) && nested.size() > 0) {
+					explanations.add(buildSolution(parser, nested, definitions));
+					nested.clear();
+				}
+				nested.add(clip);
+			}
+			else {
+				if(nested.size() > 0) {
+					explanations.add(buildSolution(parser, nested, definitions));
+					nested.clear();
+				}
+				Action action = parser.build(parser.match(ACTION, clip), Action.class, definitions);
+				solution = solution.prepend(action);
+				for(Solution<Action> explanation : explanations)
+					solution = solution.setExplanation(explanation.prepend(action));
+				explanations.clear();
+			}
+		}
+		return solution;
 	}
 }

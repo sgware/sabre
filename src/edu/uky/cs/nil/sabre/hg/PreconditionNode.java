@@ -79,16 +79,16 @@ public class PreconditionNode extends CostNode {
 		// The fluent on the left has a new value, so check this comparison.
 		if(node.equals(fluent)) {
 			for(int i=0; i<this.value.size(); i++)
-				if(label.operator.test(value, this.value.getValue(i)))
+				if(fluent.getCost(label.operator, this.value.getValue(i)) != Double.POSITIVE_INFINITY)
 					setCost(graph.cost(this, value, cost, this.value.getValue(i), this.value.getCost(i)));
 		}
 		// The value expression on the right has a new value, so check this
 		// comparison. This should only occur for numeric fluents, because the
 		// value of a precondition on a nominal fluent should always be a
 		// constant.
-		else if(node.equals(this.value)) {
+		else if(node.equals(this.value)) {			
 			for(int i=0; i<fluent.size(); i++)
-				if(label.operator.test(fluent.getValue(i), value))
+				if(this.value.getCost(label.operator.flip(), fluent.getValue(i)) != Double.POSITIVE_INFINITY)
 					setCost(graph.cost(this, fluent.getValue(i), fluent.getCost(i), value, cost));
 		}
 	}

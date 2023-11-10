@@ -481,7 +481,7 @@ public class ProgressionSearch extends Search<CompiledAction> {
 			SearchRoot<N> branch = trunk.getBranch(characters.get(index));
 			if(branch == null)
 				return false;
-			else if(!push(branch))
+			else if(!push(branch) && !branch.isExplained())
 				return false;
 			else if(!explain(trunk, characters, index + 1)) {
 				queue.remove(branch);

@@ -41,10 +41,8 @@ public class SolutionPlan<A extends Action> implements Solution<A> {
 	 * @param explanations the list of solutions for the action's consenting
 	 * characters
 	 * @param rest the rest of the solution after the first action
-	 * @throws FormatException if the action is not ground
 	 */
 	protected SolutionPlan(A first, ImmutableArray<Solution<A>> explanations, Solution<A> rest) {
-		first.mustBeGround();
 		this.first = first;
 		this.explanations = explanations;
 		this.rest = rest;

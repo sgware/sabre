@@ -70,15 +70,12 @@ public class Sentinel extends Lookahead {
 		ParseTree[] children = new ParseTree[this.children];
 		int child = 0;
 		for(int i=0; i<patterns.size(); i++) {
-			if(remainder.size() == 0)
-				throw Exceptions.parseUnexpected("something after \"" + Pattern.last(tokens).first.value + "\"", "nothing", Pattern.last(tokens));
-			else if(i == patterns.size() - 1) {
-				ParseTree end = parser.match(patterns.get(i), remainder);
-				if(!(patterns.get(i) instanceof Keyword))
-					children[child] = end;
-			}
-			else if(patterns.get(i) instanceof Keyword) {
-				parser.match(patterns.get(i), Pattern.clip(remainder, 1));
+			Pattern pattern = patterns.get(i);
+			ImmutableList<Token> clip;
+			if(i == patterns.size() - 1)
+				clip = remainder;
+			else if(pattern instanceof Keyword) {
+				clip = Pattern.clip(remainder, 1);
 				remainder = remainder.rest;
 			}
 			else {
@@ -86,9 +83,20 @@ public class Sentinel extends Lookahead {
 				ImmutableList<Token> end = find(sentinel, remainder);
 				if(end == null)
 					throw Exceptions.parseUnexpected(sentinel + " after \"" + Pattern.last(remainder).first.value + "\"", "nothing", remainder);
-				children[child++] = parser.match(patterns.get(i), Pattern.clip(remainder, remainder.size() - end.size()));
+				clip = Pattern.clip(remainder, remainder.size() - end.size());
 				remainder = end;
 			}
+			ParseTree result;
+			try {
+				result = parser.match(pattern, clip);
+			}
+			catch(ParseException e) {
+				if(clip.size() == 0)
+					throw Exceptions.parseUnexpected("something after \"" + Pattern.last(tokens).first.value + "\"", "nothing", Pattern.last(tokens));
+				throw e;
+			}
+			if(!(pattern instanceof Keyword))
+				children[child++] = result;
 		}
 		return new ParseTree(this, tokens, children);
 	}

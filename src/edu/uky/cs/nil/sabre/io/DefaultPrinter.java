@@ -147,13 +147,15 @@ public class DefaultPrinter extends Printer {
 		setPrinter(Variable.class, (printer, variable, writer) -> writer.append(variable.name));
 		setPrinter(Signature.class, (printer, signature, writer) -> {
 			writer.append(signature.name);
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			for(int i=0; i<signature.arguments.size(); i++) {
-				if(i > 0)
-					writer.append(", ");
+				if(i > 0) {
+					writer.append(DefaultParser.PARAMETER_SEPARATOR);
+					writer.append(" ");
+				}
 				printer.print(signature.arguments.get(i), writer);
 			}
-			writer.append(")");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
 		});
 		setPrinter(Fluent.class, (printer, fluent, writer) -> {
 			printEpistemic(printer, fluent.characters, fluent.signature, writer);
@@ -164,9 +166,10 @@ public class DefaultPrinter extends Printer {
 		setPrinter(Conditional.class, (printer, conditional, writer) -> {
 			for(int i=0; i<conditional.conditions.size(); i++) {
 				writer.append(i == 0 ? DefaultParser.CONDITIONAL_FIRST_BRANCH_KEYWORD : DefaultParser.CONDITIONAL_MIDDLE_BRANCH_KEYWORD);
-				writer.append("(");
+				writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 				printer.print(conditional.conditions.get(i), writer);
-				writer.append(") ");
+				writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+				writer.append(" ");
 				wrap(printer, conditional.branches.get(i), writer);
 				writer.append(" ");
 			}
@@ -185,23 +188,27 @@ public class DefaultPrinter extends Printer {
 		});
 		setPrinter(ArithmeticExpansion.class, (printer, expansion, writer) -> {
 			printer.print(expansion.operator, writer);
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			printVariableDefinition(printer, expansion.variable, writer);
-			writer.append(") ");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+			writer.append(" ");
 			printer.print(expansion.argument, writer);
 		});
 		setPrinter(Quantified.class, (printer, quantified, writer) -> {
 			printer.print(quantified.quantifier, writer);
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			printVariableDefinition(printer, quantified.variable, writer);
-			writer.append(") ");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+			writer.append(" ");
 			printer.print(quantified.argument, writer);
 		});
 		setPrinter(Conjunction.class, (printer, conjunction, writer) -> {
 			if(conjunction.equals(Clause.NULL))
 				writer.append(DefaultParser.NULL_CLAUSE_KEYWORD);
-			else if(conjunction.arguments.size() == 0)
-				writer.append("()");
+			else if(conjunction.arguments.size() == 0) {
+				writer.append(DefaultParser.LOGICAL_OPEN_BRACKET);
+				writer.append(DefaultParser.LOGICAL_CLOSE_BRACKET);
+			}
 			else {
 				for(int i=0; i<conjunction.arguments.size(); i++) {
 					if(i > 0) {
@@ -248,9 +255,10 @@ public class DefaultPrinter extends Printer {
 		setPrinter(Effect.class, (printer, effect, writer) -> {
 			if(!effect.condition.equals(True.TRUE)) {
 				writer.append(DefaultParser.CONDITIONAL_EFFECT_KEYWORD);
-				writer.append("(");
+				writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 				printer.print(effect.condition, writer);
-				writer.append(") ");
+				writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+				writer.append(" ");
 			}
 			printer.print(effect.fluent, writer);
 			writer.append(" ");
@@ -267,9 +275,11 @@ public class DefaultPrinter extends Printer {
 		});
 		setPrinter(Problem.class, (printer, problem, writer) -> printProblem(printer, problem, writer));
 		setPrinter(Mapping.Function.class, (printer, mapping, writer) -> {
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			printVariableDefinition(printer, mapping.variable, writer);
-			writer.append("): ");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+			writer.append(DefaultParser.DEFINITION_INDICATOR);
+			writer.append(" ");
 			printer.print(mapping.argument, writer);
 		});
 		setPrinter(InitialState.class, (printer, initial, writer) -> {
@@ -355,67 +365,75 @@ public class DefaultPrinter extends Printer {
 			expression instanceof Conjunction ||
 			(expression instanceof Disjunction && !(expression instanceof Value));
 		if(wrap)
-			writer.append("(");
+			writer.append(DefaultParser.LOGICAL_OPEN_BRACKET);
 		printer.print(expression, writer);
 		if(wrap)
-			writer.append(")");
+			writer.append(DefaultParser.LOGICAL_CLOSE_BRACKET);
 	}
 	
 	private static final void printEpistemic(Printer printer, Object characters, Object expression, Writer writer) throws IOException {
 		int count = 0;
 		if(characters instanceof Parameter) {
 			writer.append(DefaultParser.EPISTEMIC_KEYWORD);
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			printer.print(characters, writer);
-			writer.append(", ");
+			writer.append(DefaultParser.PARAMETER_SEPARATOR);
+			writer.append(" ");
 			count = 1;
 		}
 		else if(characters != null && characters.getClass().isArray()) {
 			Object[] array = (Object[]) characters;
 			for(int i=0; i<array.length; i++) {
 				writer.append(DefaultParser.EPISTEMIC_KEYWORD);
-				writer.append("(");
+				writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 				printer.print(array[i], writer);
-				writer.append(", ");
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
 			}
 			count = array.length;
 		}
 		else if(characters != null && characters instanceof Iterable) {
 			for(Object character : (Iterable<?>) characters) {
 				writer.append(DefaultParser.EPISTEMIC_KEYWORD);
-				writer.append("(");
+				writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 				printer.print(character, writer);
-				writer.append(", ");
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
 				count++;
 			}
 		}
 		printer.print(expression, writer);
 		for(int i=0; i<count; i++)
-			writer.append(")");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
 	}
 	
 	private static final void printProblem(Printer printer, Problem problem, Writer writer) throws IOException {
 		for(Type type : problem.universe.types) {
 			if(!(type.id == Settings.BOOLEAN_TYPE_ID || type.id == Settings.NUMBER_TYPE_ID || type.id == Settings.ENTITY_TYPE_ID || type.id == Settings.CHARACTER_TYPE_ID)) {
 				printTypeDefinition(printer, type, writer);
-				writer.append(";\n");
+				writer.append(DefaultParser.DEFINITION_SEPARATOR);
+				writer.append("\n");
 			}
 		}
 		for(Entity entity : problem.universe.entities) {
 			printEntityDefinition(printer, entity, writer);
-			writer.append(";\n");
+			writer.append(DefaultParser.DEFINITION_SEPARATOR);
+			writer.append("\n");
 		}
 		for(Fluent fluent : problem.fluents) {
 			printPropertyDefinition(printer, fluent, writer);
-			writer.append(";\n");
+			writer.append(DefaultParser.DEFINITION_SEPARATOR);
+			writer.append("\n");
 		}
 		for(Action action : problem.actions) {
 			printActionDefinition(printer, problem.universe, action, writer);
-			writer.append(";\n");
+			writer.append(DefaultParser.DEFINITION_SEPARATOR);
+			writer.append("\n");
 		}
 		for(Trigger trigger : problem.triggers) {
 			printTriggerDefinition(printer, problem.universe, trigger, writer);
-			writer.append(";\n");
+			writer.append(DefaultParser.DEFINITION_SEPARATOR);
+			writer.append("\n");
 		}
 		if(problem.initial instanceof Conjunction) {
 			Conjunction<?> initial = (Conjunction<?>) problem.initial;
@@ -423,21 +441,25 @@ public class DefaultPrinter extends Printer {
 				printer.print(initial, writer);
 			else {
 				for(int i=0; i<initial.arguments.size(); i++) {
-					if(i > 0)
-						writer.append(" &\n");
+					if(i > 0) {
+						writer.append(" ");
+						writer.append(DefaultParser.CONJUNCTION_KEYWORD);
+						writer.append("\n");
+					}
 					printer.print(initial.arguments.get(i), writer);
 				}
 			}
 		}
 		else
 			printer.print(problem.initial, writer);
-		writer.append(";\n");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n");
 		printUtility(printer, null, problem.utility, writer);
-		writer.append(";");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
 		for(Character character : problem.universe.characters) {
 			writer.append("\n");
 			printUtility(printer, character, problem.utilities.get(character), writer);
-			writer.append(";");
+			writer.append(DefaultParser.DEFINITION_SEPARATOR);
 		}
 	}
 	
@@ -449,8 +471,10 @@ public class DefaultPrinter extends Printer {
 		writer.append(DefaultParser.INHERITANCE_KEYWORD);
 		writer.append(" ");
 		for(int i=0; i<type.parents.size(); i++) {
-			if(i > 0)
-				writer.append(", ");
+			if(i > 0) {
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
+			}
 			writer.append(type.parents.get(i).name);
 		}
 	}
@@ -463,21 +487,25 @@ public class DefaultPrinter extends Printer {
 		writer.append(DefaultParser.INHERITANCE_KEYWORD);
 		writer.append(" ");
 		for(int i=0; i<entity.types.size(); i++) {
-			if(i > 0)
-				writer.append(", ");
+			if(i > 0) {
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
+			}
 			writer.append(entity.types.get(i).name);
 		}
 	}
 	
 	private static final void printSignatureDefinition(Printer printer, Signature signature, Writer writer) throws IOException {
 		writer.append(signature.name);
-		writer.append("(");
+		writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 		for(int i=0; i<signature.arguments.size(); i++) {
-			if(i > 0)
-				writer.append(", ");
+			if(i > 0) {
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
+			}
 			printParameterDefinition(printer, signature.arguments.get(i), writer);
 		}
-		writer.append(")");
+		writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
 	}
 	
 	private static final void printParameterDefinition(Printer printer, Parameter parameter, Writer writer) throws IOException {
@@ -500,13 +528,14 @@ public class DefaultPrinter extends Printer {
 		writer.append(" ");
 		for(Parameter character : property.characters) {
 			writer.append(DefaultParser.EPISTEMIC_KEYWORD);
-			writer.append("(");
+			writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 			printer.print(character, writer);
-			writer.append(", ");
+			writer.append(DefaultParser.PARAMETER_SEPARATOR);
+			writer.append(" ");
 		}
 		printSignatureDefinition(printer, property.signature, writer);
 		for(int i=0; i<property.characters.size(); i++)
-			writer.append(")");
+			writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
 		writer.append(" ");
 		writer.append(DefaultParser.INHERITANCE_KEYWORD);
 		writer.append(" ");
@@ -517,26 +546,40 @@ public class DefaultPrinter extends Printer {
 		writer.append(DefaultParser.ACTION_DEFINITION_KEYWORD);
 		writer.append(" ");
 		printSignatureDefinition(printer, action.signature, writer);
-		writer.append(" {\n\t");
+		writer.append(" ");
+		writer.append(DefaultParser.EVENT_DEFINITION_OPEN_BRACKET);
+		writer.append("\n\t");
 		writer.append(DefaultParser.PRECONDITION_KEYWORD);
-		writer.append(": ");
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
 		printer.print(action.precondition, writer);
-		writer.append(";\n\t");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n\t");
 		writer.append(DefaultParser.EFFECT_KEYWORD);
-		writer.append(": ");
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
 		printer.print(action.effect, writer);
-		writer.append(";\n\t");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n\t");
 		writer.append(DefaultParser.CONSENTING_KEYWORD);
-		writer.append(": (");
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
+		writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 		for(int i=0; i<action.consenting.size(); i++) {
-			if(i > 0)
-				writer.append(", ");
+			if(i > 0) {
+				writer.append(DefaultParser.PARAMETER_SEPARATOR);
+				writer.append(" ");
+			}
 			printer.print(action.consenting.get(i), writer);
 		}
-		writer.append(");\n\t");
+		writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n\t");
 		writer.append(DefaultParser.OBSERVING_KEYWORD);
 		printMapping(printer, universe, action.observing, writer);
-		writer.append(";\n}");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n");
+		writer.append(DefaultParser.EVENT_DEFINITION_CLOSE_BRACKET);
 	}
 	
 	private static final void printMapping(Printer printer, Universe universe, Mapping<Expression> mapping, Writer writer) throws IOException {
@@ -560,23 +603,32 @@ public class DefaultPrinter extends Printer {
 		writer.append(DefaultParser.TRIGGER_DEFINITION_KEYWORD);
 		writer.append(" ");
 		printSignatureDefinition(printer, trigger.signature, writer);
-		writer.append(" {\n\t");
+		writer.append(" ");
+		writer.append(DefaultParser.EVENT_DEFINITION_OPEN_BRACKET);
+		writer.append("\n\t");
 		writer.append(DefaultParser.PRECONDITION_KEYWORD);
-		writer.append(": ");
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
 		printer.print(trigger.precondition, writer);
-		writer.append(";\n\t");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n\t");
 		writer.append(DefaultParser.EFFECT_KEYWORD);
-		writer.append(": ");
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
 		printer.print(trigger.effect, writer);
-		writer.append(";\n}");
+		writer.append(DefaultParser.DEFINITION_SEPARATOR);
+		writer.append("\n");
+		writer.append(DefaultParser.EVENT_DEFINITION_CLOSE_BRACKET);
 	}
 	
 	private static final void printUtility(Printer printer, Character character, Expression utility, Writer writer) throws IOException {
 		writer.append(DefaultParser.UTILITY_DEFINITION_KEYWORD);
-		writer.append("(");
+		writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
 		if(character != null)
 			printer.print(character, writer);
-		writer.append(") = ");
+		writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
+		writer.append(DefaultParser.DEFINITION_INDICATOR);
+		writer.append(" ");
 		printer.print(utility, writer);
 	}
 	
@@ -585,29 +637,32 @@ public class DefaultPrinter extends Printer {
 	}
 	
 	private static final void printSolution(Printer printer, String indent, Solution<?> solution, Writer writer) throws IOException {
-		writer.append(indent);
-		if(solution.getCharacter() == null)
-			writer.append("Author");
-		else
-			printer.print(solution.getCharacter(), writer);
-		writer.append(" intends ");
-		printer.print(solution.getGoal(), writer);
 		while(solution.size() > 0) {
 			Action first = solution.get(0);
-			writer.append("\n");
 			writer.append(indent);
 			printer.print(first, writer);
 			for(Parameter other : first.consenting) {
 				if(!Utilities.equals(other, solution.getCharacter())) {
 					Solution<?> explanation = solution.getExplanation((Character) other);
-					if(explanation != null && explanation.size() > 1) {
+					if(explanation != null) {
 						writer.append("\n");
-						printSolution(printer, indent + "| ", explanation.next(), writer);
+						printSolution(printer, indent + DefaultParser.BRANCH_INDENT_KEYWORD + " ", explanation.next(), writer);
 					}
 				}
 			}
+			writer.append("\n");
 			solution = solution.next();
 		}
+		writer.append(indent);
+		writer.append(DefaultParser.GOAL_KEYWORD);
+		writer.append(DefaultParser.PARAMETER_LIST_OPEN_BRACKET);
+		if(solution.getCharacter() != null) {
+			printer.print(solution.getCharacter(), writer);
+			writer.append(DefaultParser.PARAMETER_SEPARATOR);
+			writer.append(" ");
+		}
+		printer.print(solution.getGoal(), writer);
+		writer.append(DefaultParser.PARAMETER_LIST_CLOSE_BRACKET);
 	}
 	
 	private static final void printEventTree(Printer printer, EventTree<?> tree, Writer writer) throws IOException {

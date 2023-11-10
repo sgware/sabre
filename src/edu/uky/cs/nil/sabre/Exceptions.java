@@ -259,7 +259,7 @@ public class Exceptions {
 	 * @return a FormatException
 	 */
 	public static final FormatException notDefined(String type, String name) {
-		return new FormatException(type + (name == null ? " \"" + name + "\"" : "") + " not defined.");
+		return new FormatException(type + (name == null ? "" : " \"" + name + "\"") + " not defined.");
 	}
 	
 	/**

@@ -47,7 +47,7 @@ public abstract class Lookahead implements Pattern {
 	 */
 	protected static final ImmutableList<Token> find(String query, ImmutableList<Token> tokens) {
 		while(tokens.size() > 0) {
-			if(tokens.first.value.equalsIgnoreCase(query))
+			if(tokens.first.value.equals(query))
 				return tokens;
 			else if(tokens.first.value.equals("(")) {
 				tokens = find(")", tokens.rest);

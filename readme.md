@@ -20,6 +20,13 @@ agent believes the world to be in, (2) would improve the agent's utility if
 their beliefs are correct, and (3) is made only of actions that are explained
 for all other agents who act.
 
+A narrative planner is not meant to replace human authors but to assist them in
+telling interactive stories. People are better than algorithms at telling
+stories, and even if they weren't, storytelling is an important feature
+of human culture that should not be automated away. The value of a narrative
+planner is its ability to assist in procedural storytelling by re-generating
+a story quickly at run time as part of some larger interactive narrative system.
+
 Sample problems and code to compare different configurations of Sabre can be
 found in a separate repository:
 https://github.com/sgware/sabre-benchmarks
@@ -250,19 +257,21 @@ given.
 A verbose solution looks like this:
 
 ```
-Author intends at(MacGuffin) == Tom
 walk(Tom, Home, Market)
-| Tom intends at(MacGuffin) == Tom
 | buy(Tom, MacGuffin, Merchant)
+| | goal(Merchant, money(Merchant) == 1)
+| goal(Tom, at(MacGuffin) == Tom)
 buy(Tom, MacGuffin, Merchant)
+| goal(Tom, at(MacGuffin) == Tom)
+| goal(Merchant, money(Merchant) == 1)
+goal(at(MacGuffin) == Tom)
 ```
 
 It means the author achieved its goal of Tom having the MacGuffin by Tom walking
 to the market and buying it from the merchant. The actions indented with `|` are
 the explanation for Tom's action. Tom is willing to walk to the market because
-he can then buy the MacGuffin. No explanation is given for actions that directly
-improve a character's utility, so no explanations are shown for the last action,
-since it makes both Tom and the merchant happier.
+he can then buy the MacGuffin. The merchant will consent to Tom buying the
+MacGuffin because she wants the money.
 
 ## Ownership and License
 

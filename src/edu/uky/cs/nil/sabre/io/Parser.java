@@ -252,6 +252,18 @@ public class Parser {
 	}
 	
 	/**
+	 * Permanently {@link #define(String, Object) defines} a {@link Problem
+	 * problem} and {@link Problem#universe its associated universe}.
+	 * 
+	 * @param problem the problem which will be permanently defined along
+	 * with its universe
+	 */
+	public void define(Problem problem) {
+		define((Object) problem);
+		define(problem.universe);
+	}
+	
+	/**
 	 * Permanently {@link #define(String, Object) defines} a {@link
 	 * edu.uky.cs.nil.sabre.Universe universe} and all of its {@link
 	 * edu.uky.cs.nil.sabre.Type types} and {@link Entity entities}.

@@ -6,6 +6,7 @@ import edu.uky.cs.nil.sabre.Problem;
 import edu.uky.cs.nil.sabre.Solution;
 import edu.uky.cs.nil.sabre.State;
 import edu.uky.cs.nil.sabre.Utilities;
+import edu.uky.cs.nil.sabre.logic.Comparison;
 import edu.uky.cs.nil.sabre.util.Worker.Status;
 
 /**
@@ -113,5 +114,18 @@ public class Result<A extends Action> {
 		if(solution != null)
 			string += " " + solution.size() + " actions; utility " + utility + ";";
 		return string + " " + visited + " visited; " + generated + " generated; " + Utilities.time(time) + "]";
+	}
+	
+	/**
+	 * Indicates whether or not this result represents success in solving the
+	 * {@link #problem problem}; success means a solution was found that the
+	 * {@link Result#utility utility it achieved} is greater than or equal to
+	 * the {@link #goal search's goal}.
+	 * 
+	 * @return true if this result includes a solution which achieves a utility
+	 * that is greater than or equal to the goal, false otherwise
+	 */
+	public boolean getSuccess() {
+		return utility != null && Comparison.GREATER_THAN_OR_EQUAL_TO.test(utility, goal);
 	}
 }
