@@ -294,7 +294,7 @@ testing and development.
 
 ## Version History
 
-- Version 0.7: First public release.
+- Version 0.7 - First public release.
 
 ## Citation
 
@@ -305,7 +305,7 @@ Please cite this paper when referring to Sabre:
 > on Artificial Intelligence and Interactive Digital Entertainment, pp. 99-106,
 > 2021.
 
-BiBTeX entry:
+BibTeX entry:
 
 ```
 @inproceedings{ware2021sabre,
