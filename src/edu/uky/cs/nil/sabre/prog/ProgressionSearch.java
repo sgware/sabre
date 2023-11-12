@@ -109,7 +109,10 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	protected final PriorityQueue<SearchNode<?>> queue;
 	
 	/** The initial state that a search should start in */
-	private SearchRoot<?> start;
+	private State start;
+	
+	/** The initial state as a {@link SearchRoot search root node} */
+	private SearchRoot<?> root;
 	
 	/**
 	 * The value of the {@link edu.uky.cs.nil.sabre.Problem#utility author's
@@ -214,10 +217,11 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	@Override
 	public void setStart(State state) {
 		queue.clear();
-		start = new SearchRoot<>(this, space.initialize(state));
-		cost.initialize(start);
-		heuristic.initialize(start);
-		push(start);
+		start = state;
+		root = new SearchRoot<>(this, space.initialize(start));
+		cost.initialize(root);
+		heuristic.initialize(root);
+		push(root);
 		visited = 0;
 	}
 
@@ -266,7 +270,7 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	@SuppressWarnings("unchecked")
 	private final <N> Value utility(Solution<CompiledAction> solution) {
 		ProgressionSpace<N> space = (ProgressionSpace<N>) this.space;
-		N state = (N) start.getNode();
+		N state = (N) root.getNode();
 		for(CompiledAction action : solution)
 			state = space.getChild(state, action);
 		final N end = state;
