@@ -85,22 +85,25 @@ public abstract class Search<A extends Action> implements Getter<Result<A>> {
 	public final int characterTemporalLimit;
 	
 	/**
-	 * The maximum depth to which an {@link Character character}'s theory of
-	 * mind (what one character believes another character believes, etc.) can
-	 * be nested. A value of 0 means the search only reasons about the values of
-	 * each {@link Problem#fluents fluent} defined in the {@link #problem
-	 * problem}. This means characters cannot imagine plans to explain their
-	 * actions, and will limit solutions to actions with {@link
-	 * edu.uky.cs.nil.sabre.Action#consenting no consenting characters}. Note
-	 * that a value of 0 does not mean the search does not reason about beliefs,
-	 * because any fluent with some number of {@link
-	 * edu.uky.cs.nil.sabre.Fluent#characters characters} represents a belief. A
-	 * value of 1 means the search will reason about the true value of each
-	 * fluent as well as each character's beliefs about the value of each
-	 * fluent. A value of 2 means the search will reason about the true value,
-	 * each character's beliefs, and each character's beliefs about the beliefs
-	 * of every other character, and so on. The constant {@link
-	 * Planner#UNLIMITED_DEPTH} represents no limit.
+	 * The maximum depth that each {@link Character character}'s theory of mind
+	 * (what one character believes another character believes, etc.) can be
+	 * searched. Theory of mind is always infinite, and this setting does not
+	 * change how it behaves; it only limits which states will be {@link
+	 * #getVisited() visited} by the search. A value of 0 means the search will
+	 * never visit states that represent what a character believes the state to
+	 * be. This does not mean character beliefs are not modeled (they are). It
+	 * also does not necessarily mean the search will fail to find solutions
+	 * that contain character actions (in some cases, it still can). As long as
+	 * the states needed to explain character actions are {@link #getGenerated()
+	 * generated}, actions will be explained regardless of whether they are
+	 * visited by the search. However, a value of 0 would prevent the solution
+	 * from finding actions that can only be explained by plans that will not
+	 * actually work. These kinds of mistaken explanations can only be found if
+	 * the search visits the states that represent the hypothetical plan. A
+	 * value of 1 means the search will visit states that represent what a
+	 * character believes. A value of 2 means the search will visit states that
+	 * represents what one character believes another believes, and so on. The
+	 * constant {@link Planner#UNLIMITED_DEPTH} represents no limit.
 	 */
 	public final int epistemicLimit;
 	
@@ -118,8 +121,8 @@ public abstract class Search<A extends Action> implements Getter<Result<A>> {
 	 * plan
 	 * @param characterTemporalLimit the maximum number of actions in the plans
 	 * characters use to justify their actions
-	 * @param epistemicLimit the maximum level of nesting for character theory
-	 * of mind
+	 * @param epistemicLimit the maximum depth in a character's theory of mind
+	 * to search
 	 */
 	public Search(
 		Problem problem,

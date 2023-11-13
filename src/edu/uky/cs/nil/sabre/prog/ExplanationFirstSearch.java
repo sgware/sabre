@@ -51,8 +51,8 @@ public class ExplanationFirstSearch extends ProgressionSearch {
 	 * @param authorTemporalLimit the max number of actions in the main plan
 	 * @param characterTemporalLimit the max number of actions a character can
 	 * imagine when trying to explain its actions
-	 * @param epistemicLimit the max depth that a character's theory of mind can
-	 * be nested
+	 * @param epistemicLimit the max depth in a character's theory of mind to
+	 * search
 	 * @param explanationPruning whether the search should stop exploring a
 	 * branch once its root has been explained
 	 */

@@ -202,7 +202,7 @@ public class Main {
 		pad(TIME_LIMIT_KEY + " NUMBER") +				"max milliseconds the search can run; " + Planner.UNLIMITED_TIME + " for unlimited (default " + Planner.UNLIMITED_TIME + ")\n" +
 		pad(AUTHOR_TEMPORAL_LIMIT_KEY + " NUMBER") +	"max actions in a plan; " + Planner.UNLIMITED_DEPTH + " for unlimited (default " + Planner.UNLIMITED_DEPTH + ")\n" +
 		pad(CHARACTER_TEMPORAL_LIMIT_KEY + " NUMBER") +	"max actions in a character's explanation for an action; " + Planner.UNLIMITED_DEPTH + " for unlimited (default " + Planner.UNLIMITED_DEPTH + ")\n" +
-		pad(EPISTEMIC_LIMIT_KEY + " NUMBER") +			"max theory of mind nesting; " + Planner.UNLIMITED_DEPTH + " for unlimited (default " + Planner.UNLIMITED_DEPTH + ")";
+		pad(EPISTEMIC_LIMIT_KEY + " NUMBER") +			"max depth to explore theory of mind; " + Planner.UNLIMITED_DEPTH + " for unlimited (default " + Planner.UNLIMITED_DEPTH + ")";
 	
 	/**
 	 * A functional interface for changing a setting in a {@link Session

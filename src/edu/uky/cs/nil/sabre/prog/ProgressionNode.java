@@ -227,8 +227,9 @@ public interface ProgressionNode<N> extends State {
 	 * character} believes another character believes, and so on) at which this
 	 * node was created. All nodes have the same epistemic depth as their {@link
 	 * #getRoot() root}, which is always 1 higher than their {@link #getTrunk()
-	 * trunk}. A node's epistemic depth must always be less than or equal to
-	 * {@link ProgressionSearch#epistemicLimit the search's epistemic limit}.
+	 * trunk}. A node will only be visited if its epistemic depth is less than
+	 * or equal to {@link ProgressionSearch#epistemicLimit the search's
+	 * epistemic limit}.
 	 * 
 	 * @return the depth of theory of mind at which this node was created
 	 */

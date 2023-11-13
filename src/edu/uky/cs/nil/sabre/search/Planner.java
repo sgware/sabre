@@ -67,7 +67,7 @@ public abstract class Planner<A extends Action> implements Serializable {
 	
 	/**
 	 * The {@link Search#epistemicLimit limit on how deeply theory of mind can
-	 * be nested}
+	 * be searched}
 	 */
 	private int epistemicLimit = UNLIMITED_DEPTH;
 	

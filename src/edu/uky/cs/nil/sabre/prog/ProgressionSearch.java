@@ -144,8 +144,8 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	 * @param authorTemporalLimit the max number of actions in the main plan
 	 * @param characterTemporalLimit the max number of actions a character can
 	 * imagine when trying to explain its actions
-	 * @param epistemicLimit the max depth that a character's theory of mind can
-	 * be nested
+	 * @param epistemicLimit the max depth in a character's theory of mind to
+	 * search
 	 * @param explanationPruning whether the search should stop exploring a
 	 * branch once its root has been explained
 	 */
@@ -373,12 +373,6 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	 * #characterTemporalLimit the character temporal limit} when epistemic
 	 * depth is greater than 0), no actions are relevant, because taking any
 	 * action would expand the search space past its temporal limit.</li>
-	 * <li>If the node's {@link SearchNode#getEpistemicDepth() epistemic depth}
-	 * is equal to the search's {@link #epistemicLimit epistemic limit}, only
-	 * actions that have {@link SearchNode#getCharacter() the node's character}
-	 * as their only consenting character are relevant, because explaining the
-	 * action for other characters would require branches of the search that
-	 * extend past the search's epistemic limit.</li>
 	 * </ul>
 	 * 
 	 * @param <N> the type of object used to represent a node in {@link #space
@@ -411,10 +405,8 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	private final boolean checkLimits(SearchNode<?> parent, CompiledAction action) {
 		if(action.consenting.size() == 0)
 			return parent.getEpistemicDepth() == 0;
-		else if(action.consenting.size() == 1 && Utilities.equals(parent.getCharacter(), action.consenting.get(0)))
-			return true;
 		else
-			return parent.getEpistemicDepth() < epistemicLimit || epistemicLimit == Planner.UNLIMITED_DEPTH;
+			return true;
 	}
 	
 	/**
@@ -485,14 +477,12 @@ public class ProgressionSearch extends Search<CompiledAction> {
 			SearchRoot<N> branch = trunk.getBranch(characters.get(index));
 			if(branch == null)
 				return false;
-			else if(!push(branch) && !branch.isExplained())
+			else if(!explain(trunk, characters, index + 1))
 				return false;
-			else if(!explain(trunk, characters, index + 1)) {
-				queue.remove(branch);
-				return false;
-			}
-			else
+			else {
+				push(branch);
 				return true;
+			}
 		}
 	}
 	
@@ -501,11 +491,14 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	 * This method returns true if the node was added successfully or false if
 	 * the node was not added.
 	 * <p>
-	 * By default, this method calculates the {@link #cost cost} and {@link
-	 * #heuristic heuristic} values for the search node and {@link
-	 * SearchNode#setCost(double) sets them}. If either cost is {@link
-	 * Double#POSITIVE_INFINITY positive infinity}, this method returns false.
-	 * Otherwise, this method adds the node to the queue and returns true.
+	 * By default, this method returns false if {@link
+	 * SearchNode#getEpistemicDepth() the node's epistemic depth} exceeds {@link
+	 * #epistemicLimit the search's epistemic limit}. It also calculates the
+	 * {@link #cost cost} and {@link #heuristic heuristic} values for the search
+	 * node and {@link SearchNode#setCost(double) sets them}. If either cost is
+	 * {@link Double#POSITIVE_INFINITY positive infinity}, this method returns
+	 * false. Otherwise, this method adds the node to the queue and returns
+	 * true.
 	 * 
 	 * @param <N> the type of object used to represent a node in {@link #space
 	 * the search space}
@@ -514,6 +507,8 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	 * not added
 	 */
 	protected <N> boolean push(SearchNode<N> node) {
+		if(epistemicLimit != Planner.UNLIMITED_DEPTH && node.getEpistemicDepth() > epistemicLimit)
+			return false;
 		node.setCost(cost.evaluate(node));
 		if(node.getCost() == Double.POSITIVE_INFINITY)
 			return false;

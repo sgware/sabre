@@ -219,18 +219,24 @@ the merchant does not know where Tom is.
 
 Here is a more advanced search. `-v` means verbose mode, which shows detailed
 information about the search and its result. This example uses Bonet and
-Geffner's additive heuristic. It also sets the _epistemic limit_ to 2, which
-means the planner will only reason 2 layers deep in the theory of mind. In other
-words, it will reason about what Tom believes (1 layer), what Tom believes the
-Merchant believes (2 layers), but not what Tom believes the Merchant believes
-Tom believes (3 layers).
+Geffner's additive heuristic. It also sets the _epistemic limit_ to 1, which
+means the planner will only explore 1 layer deep in the theory of mind. In other
+words, it will explore the states that represent what is actually true (0
+layers), it will explore the states that represent what Tom believes (1 layer),
+but it will not explore the states that represent what Tom believes the Merchant
+believes (2 layers). Sabre always _models_ infinite layers of belief. In this
+case Sabre will generate some states on layer 2, and indeed it must to solve
+this problem, since Tom has to believe the merchant will sell him the MacGuffin,
+but Sabre will not _explore_ any states on layer 2.
 
 ```
-java -jar sabre.jar -v -p macguffin.txt -h h+ -el 2
+java -jar sabre.jar -v -p macguffin.txt -h h+ -el 1
 ```
 
 The output shows 6 nodes visited, which means the planner considered 6 partially
-complete versions of the story before it found the solution.
+complete versions of the story before it found the solution. Significantly more
+nodes were generated, some of them on belief layer 2, but only 6 of those nodes
+were considered as possible solutions.
 
 Here is a complete search of the problem to depth 3. This example uses
 _explanation-first search_, which means an action must be explained for all
@@ -294,7 +300,7 @@ testing and development.
 
 ## Version History
 
-- Version 0.7 - First public release.
+- Version 0.7: First public release.
 
 ## Citation
 
@@ -305,7 +311,7 @@ Please cite this paper when referring to Sabre:
 > on Artificial Intelligence and Interactive Digital Entertainment, pp. 99-106,
 > 2021.
 
-BibTeX entry:
+BiBTeX entry:
 
 ```
 @inproceedings{ware2021sabre,
