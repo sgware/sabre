@@ -170,14 +170,14 @@ take. An action has four parts:
 	describe how the action changes the state. Effects can be conditional.
 	- *Consenting Characters*: A list of zero, one, or many `character`s who
 	must have a reason to take the action. No consenting characters means the
-	author can take the action at any time. Characters cannot anticipate actons
+	author can take the action at any time. Characters cannot anticipate actions
 	with no consenting characters. When there are two or more characters, each
 	must have a reason, but they can have different reasons.
 	- *Observing Characters*: A function which defines a `boolean` expression
 	for each `character`. If it is true in the state before the action occurs,
 	the character will see the action occur and know about its effects.
 	Characters who do not observe the action will not update their beliefs
-	(unless the action's effect has explcit belief updates for that character).
+	(unless the action's effect has explicit belief updates for that character).
 - *Triggers*: Events that must occur when their preconditions are met. A trigger
 defines a precondition and effect like an action. Triggers do not define
 consenting characters, because they must happen when they can. They do not
