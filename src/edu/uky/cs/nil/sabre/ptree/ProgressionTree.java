@@ -1654,7 +1654,12 @@ public class ProgressionTree implements Serializable {
 		for(int i=0; i<utility.branches.size(); i++) {
 			Disjunction<Clause<Precondition>> condition = utility.getCondition(i);
 			if(getValue(node, condition).equals(True.TRUE)) {
-				goal = new Conjunction<>(goal, condition);
+				for(Clause<Precondition> clause : condition) {
+					if(getValue(node, clause).equals(True.TRUE)) {
+						goal = new Conjunction<>(goal, clause);
+						break;
+					}
+				}
 				for(CompiledFluent fluent : utility.branches.get(i).collect(CompiledFluent.class))
 					goal = new Conjunction<>(goal, new Precondition(Comparison.EQUAL_TO, fluent, getValue(node, fluent)));
 				break;
