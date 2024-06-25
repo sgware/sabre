@@ -1,5 +1,7 @@
 package edu.uky.cs.nil.sabre.prog;
 
+import edu.uky.cs.nil.sabre.Character;
+import edu.uky.cs.nil.sabre.State;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
 import edu.uky.cs.nil.sabre.hg.HeuristicGraph;
 import edu.uky.cs.nil.sabre.hg.MaxGraph;
@@ -16,12 +18,21 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * graph} to estimate how many more actions would need to be taken in some state
  * before a character's utility can be improved.
  * <p>
- * By default, this function initializes its heuristic graph to the current
- * state of the problem and then extends the graph until it is possible for the
- * utility of {@link ProgressionNode#getCharacter() the character associated
- * with the node} to be higher. It then returns {@link
+ * By default, {@link #evaluate(State, Character) the evaluate} method
+ * initializes its heuristic graph to the given state and then extends the
+ * graph until it is possible for the utility of the given character to be
+ * higher. It then returns the {@link
  * edu.uky.cs.nil.sabre.hg.CostSet#getCost(int) the cost} of achieving that
  * higher utility value.
+ * <p>
+ * When {@link #evaluate(ProgressionNode) evaluating} a {@link ProgressionNode
+ * progression search node} this cost function uses the node as the state and
+ * {@link ProgressionNode#getCharacter() the node's character} as the
+ * character. Nodes which are {@link ProgressionNode#isExplained() explained}
+ * always return a value of 0 to avoid penalizing solutions during search.
+ * Otherwise, a node which just improved its character's utility, but for which
+ * it might be possible to further improve utility, would have a non-zero cost
+ * estimate and would be visited later during a heuristic search.
  * 
  * @author Stephen G. Ware
  */
@@ -161,9 +172,24 @@ public class GraphHeuristic implements ProgressionCost {
 	public <N> double evaluate(ProgressionNode<N> node) {
 		if(node.isExplained(node.getCharacter()))
 			return 0;
-		Value start = node.getUtility(node.getCharacter());
-		UtilityNode utility = graph.getUtility(node.getCharacter());
-		graph.initialize(node);
+		else
+			return evaluate(node, node.getCharacter());
+	}
+	
+	/**
+	 * Uses a {@link HeuristicGraph heuristic graph} to estimate the number of
+	 * actions that need to be taken from the given state to improve the
+	 * utility of the given character.
+	 * 
+	 * @param state the state from which the actions would be taken
+	 * @param character the character whose utility is to be improved
+	 * @return an estimated number of actions that need to be taken to improve
+	 * the character's utility
+	 */
+	public double evaluate(State state, Character character) {
+		UtilityNode utility = graph.getUtility(character);
+		graph.initialize(state);
+		Value start = utility.getValue(0);
 		while(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY && graph.extend());
 		return utility.getCost(Comparison.GREATER_THAN, start);
 	}

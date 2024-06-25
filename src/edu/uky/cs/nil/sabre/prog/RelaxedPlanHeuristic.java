@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import edu.uky.cs.nil.sabre.Action;
+import edu.uky.cs.nil.sabre.Character;
+import edu.uky.cs.nil.sabre.State;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
 import edu.uky.cs.nil.sabre.hg.ArithmeticNode;
 import edu.uky.cs.nil.sabre.hg.ClauseNode;
@@ -26,7 +28,7 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * heuristic progression search}, which solves a relaxed version of the planning
  * problem and uses the cost of the solution to that relaxed problem as an
  * approximation of the cost of solving the real problem. This heuristic is
- * inspired by Jörg Hoffmann's Fast Forward heuristic.
+ * inspired by Jï¿½rg Hoffmann's Fast Forward heuristic.
  * <p>
  * The relaxed plan heuristic works initializing a {@link
  * edu.uky.cs.nil.sabre.hg.MaxGraph max heuristic graph} to the state it is
@@ -92,14 +94,13 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 	public String toString() {
 		return STRING;
 	}
-
+	
 	@Override
-	public <N> double evaluate(ProgressionNode<N> node) {
-		if(node.isExplained(node.getCharacter()))
-			return 0;
-		Value start = node.getUtility(node.getCharacter());
-		UtilityNode utility = graph.getUtility(node.getCharacter());
-		graph.initialize(node);
+	public double evaluate(State state, Character character) {
+		UtilityNode utility = graph.getUtility(character);
+		graph.initialize(state);
+		Value start = utility.getValue(0);
+		graph.initialize(state);
 		while(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY && graph.extend());
 		if(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY)
 			return Double.POSITIVE_INFINITY;
@@ -186,7 +187,7 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 				double cost = arithmetic.left.getCost(i) + arithmetic.right.getCost(j);
 				if(cost < Double.POSITIVE_INFINITY) {
 					Value result = arithmetic.label.operator.calculate(left, right);
-					if(arithmetic.getCost(result) < Double.POSITIVE_INFINITY && (bestLeft == null || cost < bestCost)) {
+					if(arithmetic.getCost(result) < Double.POSITIVE_INFINITY && operator.test(result, value) && (bestLeft == null || cost < bestCost)) {
 						bestLeft = left;
 						bestRight = right;
 						bestCost = cost;

@@ -68,11 +68,10 @@ public class SolutionPlan<A extends Action> implements Solution<A> {
 				return true;
 			SolutionPlan<?> otherPlan = (SolutionPlan<?>) other;
 			if(first.equals(otherPlan.first)) {
-				for(Parameter character : first.consenting)
-				{
-					if (getExplanation((Character) character) == this && otherPlan.getExplanation((Character) character) == otherPlan)
+				for(Parameter character : first.consenting) {
+					if(getExplanation((Character) character) == this && otherPlan.getExplanation((Character) character) == otherPlan)
 						continue;
-					if (!Utilities.equals(getExplanation((Character) character), otherPlan.getExplanation((Character) character)))
+					if(!Utilities.equals(getExplanation((Character) character), otherPlan.getExplanation((Character) character)))
 						return false;
 				}
 				return rest.equals(otherPlan.rest);
