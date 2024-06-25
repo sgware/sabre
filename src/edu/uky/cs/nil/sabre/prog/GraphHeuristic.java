@@ -18,7 +18,7 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * graph} to estimate how many more actions would need to be taken in some state
  * before a character's utility can be improved.
  * <p>
- * By default, {@link #evaluate(State, Character) the evaluate} method
+ * By default, the {@link #evaluate(State, Character) evaluate} method
  * initializes its heuristic graph to the given state and then extends the
  * graph until it is possible for the utility of the given character to be
  * higher. It then returns the {@link
