@@ -1,12 +1,17 @@
 package edu.uky.cs.nil.sabre.prog;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import edu.uky.cs.nil.sabre.Action;
 import edu.uky.cs.nil.sabre.Character;
+import edu.uky.cs.nil.sabre.Plan;
 import edu.uky.cs.nil.sabre.State;
+import edu.uky.cs.nil.sabre.TailPlan;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
+import edu.uky.cs.nil.sabre.hg.ActionNode;
 import edu.uky.cs.nil.sabre.hg.ArithmeticNode;
 import edu.uky.cs.nil.sabre.hg.ClauseNode;
 import edu.uky.cs.nil.sabre.hg.DisjunctionNode;
@@ -110,6 +115,32 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 			extract(utility, Comparison.GREATER_THAN, start);
 			return cost;
 		}
+	}
+	
+	/**
+	 * Returns a plan that is a solution to the relaxed problem. Recall that
+	 * the relaxed problem assumes that once a fact is true, it stays true
+	 * forever. The relaxed problem is unlikely to be a true solution to the
+	 * real problem, but it may approximate a solution to the real problem in
+	 * length and content. The relaxed plan does not account for character
+	 * intentions or beliefs.
+	 * <p>
+	 * This method returns the relaxed plan discovered the last time {@link
+	 * #evaluate(State, Character)} was called. If that method has not yet been
+	 * called, the relaxed plan will be empty.
+	 * 
+	 * @return a solution to the relaxed problem this heuristic solves
+	 */
+	public Plan<Action> getRelaxedPlan() {
+		ArrayList<ActionNode> actions = new ArrayList<>(cost);
+		for(Node node : subgraph)
+			if(node instanceof ActionNode)
+				actions.add((ActionNode) node);
+		Collections.sort(actions);
+		TailPlan<Action> plan = TailPlan.EMPTY;
+		for(ActionNode action : actions)
+			plan = plan.append(action.label);
+		return plan;
 	}
 	
 	/**
