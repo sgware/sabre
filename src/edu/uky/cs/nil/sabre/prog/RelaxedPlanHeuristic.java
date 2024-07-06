@@ -103,15 +103,14 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 	@Override
 	public double evaluate(State state, Character character) {
 		UtilityNode utility = graph.getUtility(character);
-		graph.initialize(state);
 		Value start = utility.getValue(0);
+		subgraph.clear();
+		cost = 0;
 		graph.initialize(state);
 		while(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY && graph.extend());
 		if(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY)
 			return Double.POSITIVE_INFINITY;
 		else {
-			subgraph.clear();
-			cost = 0;
 			extract(utility, Comparison.GREATER_THAN, start);
 			return cost;
 		}
