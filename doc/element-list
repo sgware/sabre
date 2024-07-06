@@ -6,5 +6,6 @@ edu.uky.cs.nil.sabre.hg
 edu.uky.cs.nil.sabre.io
 edu.uky.cs.nil.sabre.logic
 edu.uky.cs.nil.sabre.prog
+edu.uky.cs.nil.sabre.ptree
 edu.uky.cs.nil.sabre.search
 edu.uky.cs.nil.sabre.util

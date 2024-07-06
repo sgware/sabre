@@ -40,12 +40,13 @@ import edu.uky.cs.nil.sabre.util.ImmutableSet;
 import edu.uky.cs.nil.sabre.util.MemoryBudget;
 
 /**
- * A progression search space is a large table that stores the data for each
- * node of a {@link ProgressionTreeSearch progression tree search} through the
- * space of {@link State states}. States are not stored as objects to avoid
- * excessive allocation on the heap during search; rather, data for each state
- * is stored in a {@link BigArrayLong big array} and each node is identified by
- * an ID number. Most methods have a state ID number as a parameter.
+ * A progression tree is a large table that stores the data for each node of a
+ * {@link edu.uky.cs.nil.sabre.prog.ProgressionSearch progression search}
+ * through the space of {@link State states}. States are not stored as objects
+ * to avoid excessive allocation on the heap during search; rather, data for
+ * each state is stored in a {@link BigArrayLong big array} and each node is
+ * identified by an ID number. Most methods have a state ID number as a
+ * parameter.
  * <p>
  * A node can be thought of as an {@link CompiledEvent event}/{@link State
  * state} pair, meaning each node has an {@link #getEvent(long) event associated
@@ -328,6 +329,16 @@ public class ProgressionTree implements Serializable {
 		this(problem, triggers, BigArrayLong.DEFAULT_CHUNK_SIZE, new MemoryBudget());
 	}
 	
+	/**
+	 * Deserializes a progression tree as only its initial state; no other node
+	 * data will be read regardless of what data the tree contained when it was
+	 * serialized.
+	 * 
+	 * @param in the deserialization input stream
+	 * @throws IOException if an IO exception occurs while reading the tree
+	 * @throws ClassNotFoundException if an class not found exception occurs
+	 * while reading in the tree
+	 */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		State start = initial.get(0).state;
