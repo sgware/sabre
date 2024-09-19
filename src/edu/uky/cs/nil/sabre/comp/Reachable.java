@@ -65,7 +65,7 @@ public class Reachable implements Function<Object, Object> {
 	 */
 	public Reachable(CompiledProblem problem, Worker.Status status) {
 		graph = new MaxGraph(problem, status);
-		initialize(graph, new StateGraph(problem).root.afterTriggers());
+		initialize(graph, new StateGraph(problem).root.getAfterTriggers());
 		for(ActionNode action : graph.actions)
 			if(action.label.consenting.size() == 0)
 				action.setCost(0);

@@ -13,11 +13,11 @@ import edu.uky.cs.nil.sabre.Settings;
  * 
  * @author Stephen G. Ware
  */
-public abstract class Edge implements Serializable {
-	
+public class Edge implements Serializable {
+
 	/**
-	 * The edge group interface provides a convenient way to iterator through
-	 * and modify a singly linked list of one type of edge.
+	 * An edge group provides a convenient way to iterator through and modify a
+	 * singly linked list of one type of edge.
 	 * 
 	 * @author Stephen G. Ware
 	 */
@@ -73,7 +73,7 @@ public abstract class Edge implements Serializable {
 			edge.nextIn = next;
 		}
 	};
-
+	
 	/** Serial version ID */
 	private static final long serialVersionUID = Settings.VERSION_UID;
 	
@@ -87,28 +87,36 @@ public abstract class Edge implements Serializable {
 	public final StateNode child;
 	
 	/** The next outgoing edge in a singly linked list */
-	Edge nextOut = null;
+	private Edge nextOut = null;
 	
 	/** The next incoming edge in a singly linked list */
-	Edge nextIn = null;
+	private Edge nextIn = null;
 	
+	/**
+	 * Constructs a new edge from a given parent, label, and child and
+	 * registers the edge for later cleaning.
+	 * 
+	 * @param parent the state node out of which this edge extends
+	 * @param label an object explaining the relationship of the parent to the
+	 * child
+	 * @param child the state node into which this edge goes
+	 */
 	Edge(StateNode parent, Object label, StateNode child) {
 		this.parent = parent;
 		this.label = label;
 		this.child = child;
+		parent.graph.newEdges.add(this);
 	}
 	
 	@Override
 	public String toString() {
-		return parent.id + " -(" + label + ")-> " + child.id;
+		return parent + " -(" + label + ")-> " + child;
 	}
 	
 	/**
-	 * Returns a permanent edge equivalent to this edge whose parent and child
-	 * are both permanent state nodes (that is, the parent and child nodes have
-	 * been {@link StateNode#resolve() resolved}).
-	 * 
-	 * @return a permanent edge equivalent to this edge
+	 * This methods runs during {@link StateGraph#clean() graph cleaning} to
+	 * ensure that the {@link #child child node} is a permanent node and that
+	 * this edge has been registered in the child node's list of in edges.
 	 */
-	abstract Edge resolve();
+	void clean() {}
 }

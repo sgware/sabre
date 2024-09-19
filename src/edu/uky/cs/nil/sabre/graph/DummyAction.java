@@ -215,6 +215,6 @@ public class DummyAction {
 	}
 	
 	private static final Signature signature(Character observing, Clause<Effect> effect) {
-		return new Signature(DefaultParser.EPISTEMIC_KEYWORD + "_" + observing + signature(effect).name);
+		return new Signature(DefaultParser.EPISTEMIC_KEYWORD + "_" + observing + "_" + signature(effect).name);
 	}
 }
