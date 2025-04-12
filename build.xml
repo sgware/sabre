@@ -4,7 +4,7 @@
 	<target name="build" depends="clean,javadoc,jar"/>
 	<target name="clean">
 		<delete dir="doc"/>
-		<delete dir="lib"/>
+		<delete dir="jar"/>
 	</target>
 	<target name="javadoc">
 		<javadoc
@@ -33,7 +33,7 @@
 		/>
 	</target>
 	<target name="jar">
-		<jar destfile="lib/sabre.jar">
+		<jar destfile="jar/sabre.jar">
 			<fileset dir="src"/>
 			<fileset dir="bin"/>
 			<manifest>
