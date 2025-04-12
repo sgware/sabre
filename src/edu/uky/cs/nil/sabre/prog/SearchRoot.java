@@ -5,11 +5,12 @@ import edu.uky.cs.nil.sabre.Character;
 /**
  * A special {@link SearchNode search node} that represents the root of a
  * search to improve the utility of a specific character. Since all search nodes
- * have the same trunk, character, temporal offset, and epistemic depth as their
- * root nodes, that information is stored in the root node rather than copied
- * into each search node.
+ * have the same trunk, character, and epistemic depth as their root nodes, that
+ * information is stored in the root node rather than copied into each search
+ * node.
  * 
- * @param <N>
+ * @param <N> the type of object used to represent a node in {@link #getSpace()
+ * the search space}
  * @author Stephen G. Ware
  */
 class SearchRoot<N> extends SearchNode<N> {
@@ -27,13 +28,7 @@ class SearchRoot<N> extends SearchNode<N> {
 	 * The trunk node for which this root is a branch (or null if this is an
 	 * author node)
 	 */
-	public final N trunk;
-	
-	/**
-	 * The {@link #getTemporalOffset() temporal offset} of this root node and
-	 * all of its descendants
-	 */
-	public final int offset;
+	public final SearchNode<N> trunk;
 	
 	/**
 	 * The {@link #getEpistemicDepth() epistemic depth} of this root node and
@@ -49,11 +44,10 @@ class SearchRoot<N> extends SearchNode<N> {
 	 * state
 	 */
 	public SearchRoot(ProgressionSearch search, N start) {
-		super(start);
+		super(start, 0);
 		this.search = search;
 		this.character = null;
 		this.trunk = null;
-		this.offset = 0;
 		this.epistemic = 0;
 	}
 	
@@ -66,14 +60,10 @@ class SearchRoot<N> extends SearchNode<N> {
 	 * @param branch the search space node that will be the root state
 	 */
 	SearchRoot(SearchNode<N> trunk, Character character, N branch) {
-		super(branch);
+		super(branch, 1);
 		this.search = trunk.getSearch();
 		this.character = character;
-		this.trunk = trunk.getNode();
-		if(trunk.getCharacter() == null)
-			this.offset = 1;
-		else
-			this.offset = trunk.getTemporalOffset() + trunk.getTemporalDepth();
+		this.trunk = trunk;
 		this.epistemic = trunk.getEpistemicDepth() + 1;
 	}
 }

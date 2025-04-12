@@ -25,15 +25,12 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * visiting} nodes one at a time, but this search may visit the same node more
  * than once. The procedure for visiting a node works like this:
  * <ul>
- * <li>First, calculate the sum of the node's {@link
- * ProgressionNode#getTemporalOffset() temporal offset} and its {@link
- * ProgressionNode#getTemporalDepth() temporal depth}. Call this value the
- * node's temporal distance.</li>
- * <li>If the node has not yet been visited at or below that temporal distance,
- * {@link SearchNode#getChild(CompiledAction) children} will be generated for
- * each relevant action, but the branches needed to explain those children will
- * not be generated. This allows the search to move toward the goal without
- * yet explaining any actions.</li>
+ * <li>If the node has not yet been visited at or below its {@link
+ * SearchNode#getExplanationDepth() explanation depth}, its {@link
+ * SearchNode#getChild(CompiledAction) children} will be generated for each
+ * relevant action, but the branches needed to explain those children will not
+ * be generated. This allows the search to move toward the goal without yet
+ * explaining any actions.</li>
  * <li>If the {@link SearchNode#getAction() node's action} is explained for
  * {@link SearchNode#getCharacter() the node's character} (that is, it can lead
  * to an improved utility for the character of interest), but not for all of
@@ -45,14 +42,14 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * <li>If the {@link SearchNode#getAction() node's action} is explained for all
  * its consenting characters and can lead to an improved utility for {@link
  * SearchNode#getCharacter() the node's character}, all of its {@link
- * SearchNode#getParents() parents} are pushed back onto the queue to be queue
- * to be visited again. Otherwise, the node is pruned, because the search to
- * explain one of its branches must have failed.</li>
+ * SearchNode#getParents() parents} are pushed back onto the queue to be visited
+ * again. Otherwise, the node is pruned, because the search to explain one of
+ * its branches must have failed.</li>
  * </ul>
- * The reason a node's temporal distance is checked is because if a node is
- * revisited later at a lower temporal distance, it should be expanded and/or
- * explained again, because it is possible that previous searches only failed
- * because the search ran up against its temporal limits.
+ * The reason a node's explanation depth distance is checked is because if a
+ * node is revisited later at a lower explanation depth, it should be expanded
+ * and/or explained again, because it is possible that previous searches only
+ * failed because the search ran up against its temporal limits.
  * <p>
  * Nodes only count toward {@link #getVisited() the number of visited nodes}
  * the first time they are visited; revisits at the same or higher temporal
@@ -173,7 +170,7 @@ public class GoalFirstSearch extends ProgressionSearch {
 	}
 	
 	private final boolean expandOnce(SearchNode<?> node) {
-		int temporal = node.getTemporalOffset() + node.getTemporalDepth();
+		int temporal = node.getExplanationDepth();
 		Integer expanded = this.expanded.get(node.getNode());
 		if(expanded == null || temporal < expanded) {
 			this.expanded.put(node.getNode(), temporal);
@@ -184,7 +181,7 @@ public class GoalFirstSearch extends ProgressionSearch {
 	}
 	
 	private final void explainOnce(SearchNode<?> node) {
-		int temporal = node.getTemporalOffset() + node.getTemporalDepth();
+		int temporal = node.getExplanationDepth();
 		Integer explained = this.explained.get(node.getNode());
 		if(explained == null || temporal < explained) {
 			this.explained.put(node.getNode(), temporal);

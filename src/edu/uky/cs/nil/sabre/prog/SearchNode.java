@@ -14,9 +14,9 @@ import edu.uky.cs.nil.sabre.util.ArrayIterable;
  * records the {@link #getCost() cost} and {@link #getHeuristic() heuristic}
  * values of the node in a {@link ProgressionSearch progression search}.
  * 
- * @param <N> the type of object used to represent a node in {@link #space the
- * search space}
- * @author Stephen
+ * @param <N> the type of object used to represent a node in {@link #getSpace()
+ * the search space}
+ * @author Stephen G. Ware
  */
 class SearchNode<N> implements ProgressionNode<N> {
 
@@ -26,8 +26,11 @@ class SearchNode<N> implements ProgressionNode<N> {
 	/** The progression space node this search node refers to */
 	public final N node;
 	
-	/** The node's temporal depth */
-	public final int temporal;
+	/**
+	 * The numbers of actions that have been taken in the plan to reach this
+	 * node
+	 */
+	public final int length;
 	
 	/** The node's {@link ProgressionSearch#cost cost} value */
 	private double cost;
@@ -41,10 +44,10 @@ class SearchNode<N> implements ProgressionNode<N> {
 	 * 
 	 * @param start the search space root node
 	 */
-	SearchNode(N start) {
+	SearchNode(N start, int length) {
 		this.root = (SearchRoot<N>) this;
 		this.node = start;
-		this.temporal = 0;
+		this.length = length;
 	}
 	
 	/**
@@ -52,12 +55,13 @@ class SearchNode<N> implements ProgressionNode<N> {
 	 * 
 	 * @param root this node's root
 	 * @param node the search space node this search node will refer to
-	 * @param temporal the temporal depth of this search node
+	 * @param length the number of actions that have been taken in the plan to
+	 * reach this node
 	 */
-	private SearchNode(SearchRoot<N> root, N node, int temporal) {
+	private SearchNode(SearchRoot<N> root, N node, int length) {
 		this.root = root;
 		this.node = node;
-		this.temporal = temporal;
+		this.length = length;
 	}
 	
 	/**
@@ -72,7 +76,7 @@ class SearchNode<N> implements ProgressionNode<N> {
 		this(
 			parent.root,
 			parent.getSpace().getChild(parent.getNode(), action),
-			parent.getTemporalDepth() + 1
+			parent.getPlanLength() + 1
 		);
 	}
 	
@@ -82,9 +86,10 @@ class SearchNode<N> implements ProgressionNode<N> {
 		string += "; trunk=" + getTrunk();
 		string += "; character=" + getCharacter();
 		string += "; root=" + getRoot();
-		string += "; offset=" + getTemporalOffset();
 		string += "; action=" + getAction();
 		string += "; temporal=" + getTemporalDepth();
+		string += "; explanation=" + getExplanationDepth();
+		string += "; length=" + getPlanLength();
 		string += "; epistemic=" + getEpistemicDepth();
 		string += "; cost=" + getCost();
 		string += "; heuristic=" + getHeuristic();
@@ -108,7 +113,7 @@ class SearchNode<N> implements ProgressionNode<N> {
 
 	@Override
 	public N getTrunk() {
-		return root.trunk;
+		return root.trunk.node;
 	}
 
 	@Override
@@ -122,13 +127,24 @@ class SearchNode<N> implements ProgressionNode<N> {
 	}
 
 	@Override
-	public int getTemporalOffset() {
-		return root.offset;
-	}
-
-	@Override
 	public int getTemporalDepth() {
-		return temporal;
+		if(getEpistemicDepth() == 0)
+			return getPlanLength();
+		else
+			return root.trunk.getTemporalDepth() - 1 + getPlanLength();
+	}
+	
+	@Override
+	public int getExplanationDepth() {
+		if(getEpistemicDepth() < 2)
+			return getPlanLength();
+		else
+			return root.trunk.getExplanationDepth() - 1 + getPlanLength();
+	}
+	
+	@Override
+	public int getPlanLength() {
+		return length;
 	}
 
 	@Override
