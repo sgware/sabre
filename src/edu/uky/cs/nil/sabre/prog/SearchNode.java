@@ -113,7 +113,10 @@ class SearchNode<N> implements ProgressionNode<N> {
 
 	@Override
 	public N getTrunk() {
-		return root.trunk.node;
+		if(root.trunk == null)
+			return null;
+		else
+			return root.trunk.node;
 	}
 
 	@Override
@@ -214,7 +217,7 @@ class SearchNode<N> implements ProgressionNode<N> {
 		if(parents.hasNext()) {
 			N parent = parents.next();
 			SearchNode<N>[] array = parents(child, parents, count + 1);
-			array[count] = new SearchNode<>(child.root, parent, child.getTemporalDepth() - 1);
+			array[count] = new SearchNode<>(child.root, parent, child.length - 1);
 			return array;
 		}
 		else
