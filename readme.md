@@ -305,8 +305,8 @@ testing and development.
   - The relaxed plan heuristic now has a method to return the plan it generates.
   - Redefined "temporal depth," and "plan length" for progression search and
     added the concept of "explanation depth".
-  - The JAR file produced by the build now goes to the "jar" directory instead
-    of "lib".
+  - The JAR file produced by the build now goes to the "build/jar" directory
+    instead of "lib".
   - Other minor bugs fixed.
 - Version 0.7: First public release.
 

@@ -79,7 +79,7 @@ public class Precondition extends Comparison implements Atom {
 	
 	@Override
 	public Disjunction<Clause<Precondition>> toPrecondition() {
-		return new Disjunction<>(new Clause<>(this));
+		return new Disjunction<Clause<Precondition>>(new Clause<>(this));
 	}
 	
 	@Override

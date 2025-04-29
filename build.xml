@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE xml>
 <project name="Sabre" default="build">
-	<target name="build" depends="clean,javadoc,jar"/>
+	<target name="build" depends="clean,javadoc,compile,jar"/>
 	<target name="clean">
 		<delete dir="doc"/>
-		<delete dir="jar"/>
+		<delete dir="bin"/>
+		<mkdir dir="bin"/>
+		<delete dir="build"/>
 	</target>
 	<target name="javadoc">
 		<javadoc
@@ -32,8 +34,16 @@
 			version="true"
 		/>
 	</target>
+	<target name="compile">
+		<javac
+			classpath="."
+			srcdir="src"
+			destdir="bin"
+			includeantruntime="false"
+		/>
+	</target>
 	<target name="jar">
-		<jar destfile="jar/sabre.jar">
+		<jar destfile="build/jar/sabre.jar">
 			<fileset dir="src"/>
 			<fileset dir="bin"/>
 			<manifest>
