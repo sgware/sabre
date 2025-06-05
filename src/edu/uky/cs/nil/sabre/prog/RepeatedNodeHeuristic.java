@@ -17,10 +17,10 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * the node has been evaluated before, and if the explanation depth is greater
  * than or equal to the recorded depth, this heuristic returns {@link
  * Double#POSITIVE_INFINITY positive infinity}. This prevents a node from being
- * visited more than once at the same temporal level. The explanation depth is
- * checked because a previous search of the same node might have failed due to
- * the search's temporal limits, so repeating the search at a lower temporal
- * level might succeed.
+ * visited more than once at the same explanation depth. The explanation depth
+ * is checked because a previous search of the same node might have failed due
+ * to the search's temporal limits, so repeating the search at a lower temporal
+ * level might succeed where it has previously failed.
  * 
  * @author Stephen G. Ware
  */

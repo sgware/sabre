@@ -8,14 +8,14 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * The repeated root heuristic is similar to the {@link RepeatedNodeHeuristic
  * repeated node heuristic}, except that it only prevents a {@link
  * ProgressionSearch heuristic progression search} from reusing the same node
- * as a root in the search. Like the repeated root heuristic, this cost function
- * is a wrapper around some other cost function. When a root node (that is, a
- * node whose {@link ProgressionNode#getTemporalDepth() temporal depth} is 0)
- * is evaluated, its cost will be {@link Double#POSITIVE_INFINITY infinity} if
- * that node has previously been used as a root at the same temporal level (see
- * {@link RepeatedNodeHeuristic the description of the repeated node
- * heuristic).} In all other cases, this heursitic passes thru to {@link
- * RepeatedRootHeuristic#parent the cost function it wraps around}.
+ * as a root in the search. Like the repeated node heuristic, this cost function
+ * is a wrapper around some other cost function. When a root node (that is, the
+ * start of a new part of the search) is evaluated, its cost will be {@link
+ * Double#POSITIVE_INFINITY infinity} if that node has previously been used as a
+ * root at the same explanation depth (see {@link RepeatedNodeHeuristic the
+ * description of the repeated node heuristic}). In all other cases, this
+ * heuristic passes thru to {@link RepeatedRootHeuristic#parent the cost
+ * function it wraps around}.
  * 
  * @author Stephen G. Ware
  */
@@ -80,7 +80,7 @@ public class RepeatedRootHeuristic extends RepeatedNodeHeuristic {
 	
 	@Override
 	public <N> double evaluate(ProgressionNode<N> node) {
-		if(node.getTemporalDepth() == 0)
+		if(node.getRoot() == node.getNode())
 			return super.evaluate(node);
 		else
 			return parent.evaluate(node);
