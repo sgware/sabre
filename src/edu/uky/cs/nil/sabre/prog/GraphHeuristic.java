@@ -9,6 +9,7 @@ import edu.uky.cs.nil.sabre.hg.SumGraph;
 import edu.uky.cs.nil.sabre.hg.UtilityNode;
 import edu.uky.cs.nil.sabre.logic.Comparison;
 import edu.uky.cs.nil.sabre.logic.Value;
+import edu.uky.cs.nil.sabre.search.Planner;
 import edu.uky.cs.nil.sabre.util.Worker.Status;
 
 /**
@@ -77,8 +78,11 @@ public class GraphHeuristic implements ProgressionCost {
 	}
 	
 	/**
-	 * A {@link GraphHeuristic progression cost function} that uses a {@link
-	 * MaxGraph max heuristic graph}.
+	 * An admissible {@link GraphHeuristic progression cost function} that uses
+	 * a {@link MaxGraph max heuristic graph}. This heuristic is likely to
+	 * underestimate, but because it is admissible, if the estimated remaining
+	 * cost would exceed the search's temporal limit this heuristic will return
+	 * {@link Double#POSITIVE_INFINITY}.
 	 * 
 	 * @author Stephen G. Ware
 	 */
@@ -111,6 +115,18 @@ public class GraphHeuristic implements ProgressionCost {
 		@Override
 		public String toString() {
 			return MAX.toString();
+		}
+		
+		@Override
+		public <N> double evaluate(ProgressionNode<N> node) {
+			double cost = super.evaluate(node);
+			int limit = node.getCharacter() == null ? node.getSearch().authorTemporalLimit : node.getSearch().characterTemporalLimit;
+			if(limit != Planner.UNLIMITED_DEPTH) {
+				double remaining = limit - node.getExplanationDepth();
+				if(cost > remaining)
+					cost = Double.POSITIVE_INFINITY;
+			}
+			return cost;
 		}
 	}
 
