@@ -78,11 +78,8 @@ public class GraphHeuristic implements ProgressionCost {
 	}
 	
 	/**
-	 * An admissible {@link GraphHeuristic progression cost function} that uses
-	 * a {@link MaxGraph max heuristic graph}. This heuristic is likely to
-	 * underestimate, but because it is admissible, if the estimated remaining
-	 * cost would exceed the search's temporal limit this heuristic will return
-	 * {@link Double#POSITIVE_INFINITY}.
+	 * A {@link GraphHeuristic progression cost function} that uses a {@link
+	 * MaxGraph max heuristic graph}.
 	 * 
 	 * @author Stephen G. Ware
 	 */
@@ -115,6 +112,41 @@ public class GraphHeuristic implements ProgressionCost {
 		@Override
 		public String toString() {
 			return MAX.toString();
+		}
+	}
+	
+	/**
+	 * A {@link MaxGraphHeuristic max graph heuristic} that calculates an
+	 * admissible lower bound on the cost of raising the {@link
+	 * ProgressionNode#getCharacter() node's character's} utility. While this
+	 * heuristic is likely to be be an underestimate, if the cost exceeds the
+	 * numbers of actions remaining based on the search's temporal limit, this
+	 * function will return {@link Double#POSITIVE_INFINITY}, potentially
+	 * allowing it to prune more nodes than some other heuristics.
+	 * 
+	 * @author Stephen G. Ware
+	 */
+	public static class AdmissibleMaxGraphHeuristic extends MaxGraphHeuristic {
+		
+		/**
+		 * Constructs a new admissible max graph heuristic from a given max
+		 * graph.
+		 * 
+		 * @param graph the max graph to use for calculating costs
+		 */
+		public AdmissibleMaxGraphHeuristic(MaxGraph graph) {
+			super(graph);
+		}
+		
+		/**
+		 * Constructs a new admissible max graph heuristic and its max graph.
+		 * 
+		 * @param problem that problem for which this heuristic will approximate
+		 * costs
+		 * @param status a status to update while building the max graph
+		 */
+		public AdmissibleMaxGraphHeuristic(CompiledProblem problem, Status status) {
+			super(problem, status);
 		}
 		
 		@Override
@@ -153,8 +185,8 @@ public class GraphHeuristic implements ProgressionCost {
 	
 	/**
 	 * A {@link ProgressionCostFactory factory} for producing {@link
-	 * MaxGraphHeuristic max graph heuristics}, which define the cost of a
-	 * proposition to be the same as its highest cost part.
+	 * AdmissibleMaxGraphHeuristic admissible max graph heuristics}, which
+	 * calculate an admissible lower bound on cost of improving utility.
 	 */
 	public static final ProgressionCostFactory MAX = new ProgressionCostFactory() {
 
@@ -168,7 +200,7 @@ public class GraphHeuristic implements ProgressionCost {
 		
 		@Override
 		public MaxGraphHeuristic getCost(CompiledProblem problem, Status status) {
-			return new MaxGraphHeuristic(problem, status);
+			return new AdmissibleMaxGraphHeuristic(problem, status);
 		}
 	};
 	
