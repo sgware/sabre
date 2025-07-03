@@ -142,7 +142,7 @@ class EventNode extends TemporaryNode {
 		}
 		Trigger trigger = node.graph.triggers.getAny(node);
 		if(trigger == null)
-			return node.getAfter(null);
+			return node.getAfter((Event) null);
 		else
 			return followTriggers(node.getAfter(trigger));
 	}

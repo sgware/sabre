@@ -1,9 +1,12 @@
 package edu.uky.cs.nil.sabre.ptree;
 
 import edu.uky.cs.nil.sabre.Character;
+import edu.uky.cs.nil.sabre.HeadPlan;
+import edu.uky.cs.nil.sabre.Plan;
 import edu.uky.cs.nil.sabre.Solution;
 import edu.uky.cs.nil.sabre.State;
 import edu.uky.cs.nil.sabre.comp.CompiledAction;
+import edu.uky.cs.nil.sabre.comp.CompiledEvent;
 import edu.uky.cs.nil.sabre.comp.CompiledFluent;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
 import edu.uky.cs.nil.sabre.logic.Value;
@@ -17,7 +20,7 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * generated. Not detecting duplicate states may improve the speed of a search
  * by saving the overhead requires to check for duplicates, but it may also
  * reduce the speed of a search when many duplicate states are created and must
- * then all be searched.
+ * then also be searched.
  * <p>
  * This state space uses the efficient {@link ProgressionTree progression tree}
  * data structure, which represents each node as a unique Java {@code long}.
@@ -114,5 +117,41 @@ public class ProgressionTreeSpace implements ProgressionSpace<Long> {
 			return null;
 		else
 			return branch;
+	}
+	
+	/**
+	 * Returns all actions that have occurred between the the last {@link
+	 * edu.uky.cs.nil.sabre.graph.DummyAction dummy belief update action} (or
+	 * since the initial state if no dummy actions have occurred) and the given
+	 * node.
+	 * 
+	 * @param node the ID number of the node which represents the state at the
+	 * end of the desired plan
+	 * @return all actions that have occurred between the last belief update and
+	 * and given node
+	 */
+	public Plan<CompiledAction> getPlan(long node) {
+		return tree.getPlan(node);
+	}
+	
+	/**
+	 * Returns all actions that have occurred since the initial state, including
+	 * any {@link edu.uky.cs.nil.sabre.graph.DummyAction dummy belief update
+	 * actions}.
+	 * 
+	 * @param node the ID number of the node whose full action history is
+	 * desired
+	 * @return all actions, including belief updates, that have occurred between
+	 * the initial state and the given node
+	 */
+	public Plan<CompiledAction> getHistory(long node) {
+		HeadPlan<CompiledAction> history = HeadPlan.EMPTY.cast(CompiledAction.class);
+		while(tree.getBefore(node) != node) {
+			CompiledEvent event = tree.getEvent(node);
+			if(event instanceof CompiledAction)
+				history = history.prepend((CompiledAction) event);
+			node = tree.getBefore(node);
+		}
+		return history;
 	}
 }

@@ -1,10 +1,12 @@
 package edu.uky.cs.nil.sabre.graph;
 
 import edu.uky.cs.nil.sabre.Action;
-import edu.uky.cs.nil.sabre.Character;
 import edu.uky.cs.nil.sabre.Event;
 import edu.uky.cs.nil.sabre.Settings;
+import edu.uky.cs.nil.sabre.Solution;
+import edu.uky.cs.nil.sabre.logic.Comparison;
 import edu.uky.cs.nil.sabre.logic.False;
+import edu.uky.cs.nil.sabre.logic.Value;
 
 /**
  * A temporal edge is an {@link Edge edge} whose parent is the world state
@@ -66,38 +68,6 @@ public class TemporalEdge extends Edge {
 		return label == null || label.getPrecondition().equals(False.FALSE);
 	}
 	
-	/**
-	 * When {@link #label this edge's label} is an {@link Action action}, this
-	 * method returns the {@link TemporalEdge temporal edge} corresponding to
-	 * this same action but taken from the {@link StateNode state} that some
-	 * given {@link Action#consenting consenting character} believed they were
-	 * in. A branch only exists when this action's label is a non-dummy action.
-	 * When the given character is null (representing the author), this method
-	 * returns this edge itself.
-	 * <p>
-	 * A branch is useful when reasoning about whether an action is explained.
-	 * To be explained, an action must be explained for each of its consenting
-	 * characters. For an action to be explained for a consenting character,
-	 * that character must believe the action can lead to an increase in its
-	 * utility. This can be checked by finding the action's branch for that
-	 * character and testing whether the branch's {@link Edge#child child} state
-	 * ({@link StateNode#getAfterTriggers() after triggers}) has a higher
-	 * utility for the character or can lead to a state where utility is higher.
-	 * 
-	 * @param character a character, or null for the author
-	 * @return returns the corresponding temporal edge in this graph whose
-	 * {@link Edge#parent} is the character's {@link
-	 * StateNode#getBeliefs(Character) beliefs} and whose {@link #label} is the
-	 * same action, or null if a branch is not defined or does not yet exist
-	 * for this edge
-	 */
-	public TemporalEdge getBranch(Character character) {
-		if(label instanceof Action && !isDummyAction())
-			return parent.getBeliefs(character).getTemporalChild(label);
-		else
-			return null;
-	}
-	
 	@Override
 	void clean() {
 		// If the child node has been replaced, delete this edge and create a
@@ -117,5 +87,63 @@ public class TemporalEdge extends Edge {
 		// the edge in the child node's list of in edges.
 		else
 			child.addInEdge(this);
+	}
+	
+	/**
+	 * Determines whether a {@link Solution solution} is valid for this edge. A
+	 * valid solution:
+	 * <ul>
+	 * <li>is a non-empty plan</li>
+	 * <li>whose first action matches the label of this edge</li>
+	 * <li>that is possible to execute in the {@link #parent parent state}</li>
+	 * <li>that raises the utility of {@link Solution#getCharacter() its
+	 * character}</li>
+	 * <li>that is composed of actions which are explained for all the other
+	 * consenting characters who need to take them, with the possible exception
+	 * of the first action (i.e. this egde's action)</li>
+	 * <li>is minimal, meaning none of the actions can be left out while still
+	 * achieving the same or better utility</li>
+	 * </ul>
+	 * Note that the first action in the solution (i.e. this edge's action) does
+	 * not need to be explained for all consenting characters; it only needs to
+	 * be explained for the solution's character. This is the primary difference
+	 * between validity at an edge vs. {@link StateNode#isValid(Solution)
+	 * validity in a state} (which requires that the first action be explained
+	 * for all its consenting characters). Validity at an edge means that a
+	 * solution can explain an action for its character, but may not be a fully
+	 * valid solution.
+	 * <p>
+	 * This method may add nodes and edges to the graph.
+	 * 
+	 * @param solution the solution to test for this edge
+	 * @return true if the solution is valid for this edge, false otherwise
+	 */
+	public boolean isValid(Solution<? extends Action> solution) {
+		// The plan must not be null.
+		if(solution == null)
+			return false;
+		// The plan must start with this action.
+		if(!solution.get(0).equals(label))
+			return false;
+		// The plan must be possible.
+		StateNode after = parent.getAfter(solution);
+		if(after == null)
+			return false;
+		// The plan must improve utility.
+		if(!Comparison.GREATER_THAN.test(after.getUtility(solution.getCharacter()), parent.getUtility(solution.getCharacter())))
+			return false;
+		// If the plan is one action, it is valid.
+		if(solution.size() == 1)
+			return true;
+		// If the plan has more than one action, the rest of the solution must be valid.
+		if(!child.getAfterTriggers().isValid(solution.next()))
+			return false;
+		// The plan must be minimal.
+		return isMinimal(solution);
+	}
+	
+	private final boolean isMinimal(Solution<? extends Action> solution) {
+		Value goal = parent.getAfter(solution).getUtility(solution.getCharacter());
+		return !StateNode.findSubsequence(parent, solution.next(), goal, true);
 	}
 }

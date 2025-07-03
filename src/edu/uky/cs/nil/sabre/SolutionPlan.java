@@ -122,15 +122,21 @@ public class SolutionPlan<A extends Action> implements Solution<A> {
 	public Solution<A> next() {
 		return rest;
 	}
-
+	
 	@Override
-	public Solution<A> getExplanation(Character character) {
-		if(Utilities.equals(getCharacter(), character))
-			return this;
-		for(Solution<A> explanation : explanations)
-			if(Utilities.equals(explanation.getCharacter(), character))
-				return explanation;
-		return null;
+	public Solution<A> getExplanation(int index, Character character) {
+		if(index >= size())
+			throw Exceptions.indexOutOfBounds(index);
+		else if(index == 0) {
+			if(Utilities.equals(getCharacter(), character))
+				return this;
+			for(Solution<A> explanation : explanations)
+				if(Utilities.equals(explanation.getCharacter(), character))
+					return explanation;
+			return null;
+		}
+		else
+			return rest.getExplanation(index - 1, character);
 	}
 
 	@Override

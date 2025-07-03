@@ -95,10 +95,10 @@ public class SolutionGoal<A extends Action> implements Solution<A> {
 	public Solution<A> next() {
 		return this;
 	}
-
+	
 	@Override
-	public Solution<A> getExplanation(Character character) {
-		return null;
+	public Solution<A> getExplanation(int index, Character character) {
+		throw Exceptions.indexOutOfBounds(index);
 	}
 
 	@Override

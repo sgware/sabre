@@ -301,13 +301,17 @@ testing and development.
 ## Version History
 
 - Version 0.8:
-  - Fixed and improved the graph-based state model ("graph" package).
-  - The relaxed plan heuristic now has a method to return the plan it generates.
   - Redefined "temporal depth," and "plan length" for progression search and
     added the concept of "explanation depth".
+  - Fixed and improved the state graph.
+  - State nodes and action edges in the state graph now have a method to check
+    the validity of a solution.
+  - The relaxed plan heuristic now has a method to return the plan it generates.
+  - The max graph heuristic is admissible, so it now returns positive infinity
+    if it estimates the number of actions remaning to exceed the temporal limit.  
   - The JAR file produced by the build now goes to the "build/jar" directory
     instead of "lib".
-  - Other minor bugs fixed.
+  - Other minor changes and bugs fixed.
 - Version 0.7: First public release.
 
 ## Citation

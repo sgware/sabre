@@ -8,9 +8,14 @@ import edu.uky.cs.nil.sabre.Event;
 import edu.uky.cs.nil.sabre.Exceptions;
 import edu.uky.cs.nil.sabre.FiniteState;
 import edu.uky.cs.nil.sabre.Fluent;
+import edu.uky.cs.nil.sabre.Plan;
 import edu.uky.cs.nil.sabre.Settings;
+import edu.uky.cs.nil.sabre.Solution;
 import edu.uky.cs.nil.sabre.Trigger;
 import edu.uky.cs.nil.sabre.Utilities;
+import edu.uky.cs.nil.sabre.logic.Comparison;
+import edu.uky.cs.nil.sabre.logic.Parameter;
+import edu.uky.cs.nil.sabre.logic.True;
 import edu.uky.cs.nil.sabre.logic.Value;
 
 /**
@@ -356,11 +361,114 @@ public class StateNode implements Serializable, FiniteState {
 	}
 	
 	/**
+	 * Returns the state after taking each action in a plan, if the actions are
+	 * possible. If all actions are possible, this method takes them one at a
+	 * time, adding nodes and edges to the graph if necessary and applying
+	 * triggers after each action. If any action's precondition is not met in
+	 * that state where it needs to be taken, this method returns null.
+	 * 
+	 * @param plan the plan to execute
+	 * @return a node representing the state after taking all actions in the
+	 * plan, or null if some action's precondition is not met
+	 */
+	public StateNode getAfter(Plan<? extends Action> plan) {
+		StateNode after = this;
+		for(Action action : plan) {
+			if(action.getPrecondition().evaluate(after).equals(True.TRUE))
+				after = after.getAfter(action).getAfterTriggers();
+			else
+				return null;
+		}
+		return after;
+	}
+	
+	/**
 	 * Returns a permanent node in the graph which is equivalent to this node.
 	 * 
 	 * @return an equivalent permanent node
 	 */
 	StateNode intern() {
 		return this;
+	}
+	
+	/**
+	 * Determines whether a {@link Solution solution} is valid in this state.
+	 * A valid solution:
+	 * <ul>
+	 * <li>is a non-empty plan</li>
+	 * <li>that is possible to execute in this state</li>
+	 * <li>that raises the utility of {@link Solution#getCharacter() its
+	 * character}</li>
+	 * <li>that is composed of actions which are explained for all the other
+	 * consenting characters who need to take them</li>
+	 * <li>is minimal, meaning none of the actions can be left out while still
+	 * achieving the same or better utility</li>
+	 * </ul>
+	 * This method may add nodes and edges to the graph.
+	 * 
+	 * @param solution the solution to test in this state
+	 * @return true if the solution is valid in this state, false otherwise
+	 */
+	public boolean isValid(Solution<? extends Action> solution) {
+		// The plan must not be null.
+		if(solution == null)
+			return false;
+		// The plan must not be empty.
+		if(solution.size() == 0)
+			return false;
+		// The plan must be possible.
+		StateNode after = getAfter(solution);
+		if(after == null)
+			return false;
+		// The plan must improve utility for its character.
+		if(!Comparison.GREATER_THAN.test(after.getUtility(solution.getCharacter()), this.getUtility(solution.getCharacter())))
+			return false;
+		// Every action must be explained for all other consenting characters who take them.
+		StateNode current = this;
+		Solution<? extends Action> plan = solution;
+		while(plan.size() > 0) {
+			TemporalEdge edge = current.getTemporalChild(plan.get(0));
+			if(!current.isExplainedForOthers(plan))
+				return false;
+			current = edge.child.getAfterTriggers();
+			plan = plan.next();
+		}
+		// The plan must be minimal.
+		return isMinimal(solution);
+	}
+	
+	private final boolean isMinimal(Solution<? extends Action> solution) {
+		Value goal = getAfter(solution).getUtility(solution.getCharacter());
+		return !findSubsequence(this, solution, goal, false);
+	}
+	
+	static final boolean findSubsequence(StateNode state, Solution<? extends Action> solution, Value goal, boolean shorter) {
+		if(solution.size() == 0)
+			return shorter && Comparison.GREATER_THAN_OR_EQUAL_TO.test(state.getUtility(solution.getCharacter()), goal);
+		else if(findSubsequence(state, solution.next(), goal, true))
+			return true;
+		else {
+			Action action = solution.get(0);
+			if(shorter && (!action.getPrecondition().evaluate(state).equals(True.TRUE) || !state.isExplainedForOthers(solution)))
+				return false;
+			return findSubsequence(state.getAfter(action).getAfterTriggers(), solution.next(), goal, shorter);
+		}
+	}
+	
+	private boolean isExplainedForOthers(Solution<? extends Action> solution) {
+		Action action = solution.get(0);
+		for(Parameter consenting : action.consenting) {
+			if(!Utilities.equals(consenting, solution.getCharacter()) && consenting instanceof Character other) {
+				StateNode beliefs = getBeliefs(other);
+				if(!action.getPrecondition().evaluate(beliefs).equals(True.TRUE))
+					return false;
+				beliefs.getAfter(action);
+				TemporalEdge branch = beliefs.getTemporalChild(action);
+				Solution<? extends Action> explanation = solution.getExplanation(other);
+				if(!branch.isValid(explanation))
+					return false;
+			}
+		}
+		return true;
 	}
 }
