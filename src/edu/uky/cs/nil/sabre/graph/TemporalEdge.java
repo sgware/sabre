@@ -98,6 +98,8 @@ public class TemporalEdge extends Edge {
 	 * <li>that is possible to execute in the {@link #parent parent state}</li>
 	 * <li>that raises the utility of {@link Solution#getCharacter() its
 	 * character}</li>
+	 * <li>that is either for the author or contains no author-only actions
+	 * (actions with no consenting characters)</li>
 	 * <li>that is composed of actions which are explained for all the other
 	 * consenting characters who need to take them, with the possible exception
 	 * of the first action (i.e. this egde's action)</li>
@@ -131,6 +133,9 @@ public class TemporalEdge extends Edge {
 			return false;
 		// The plan must improve utility.
 		if(!Comparison.GREATER_THAN.test(after.getUtility(solution.getCharacter()), parent.getUtility(solution.getCharacter())))
+			return false;
+		// Character explanations are not valid for an author-only action.
+		if(((Action) label).consenting.size() == 0 && solution.getCharacter() != null)
 			return false;
 		// If the plan is one action, it is valid.
 		if(solution.size() == 1)

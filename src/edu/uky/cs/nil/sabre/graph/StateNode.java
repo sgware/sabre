@@ -396,9 +396,11 @@ public class StateNode implements Serializable, FiniteState {
 	 * A valid solution:
 	 * <ul>
 	 * <li>is a non-empty plan</li>
-	 * <li>that is possible to execute in this state</li>
+	 * <li>that can be executed in this state</li>
 	 * <li>that raises the utility of {@link Solution#getCharacter() its
 	 * character}</li>
+	 * <li>that is either for the author or contains no author-only actions
+	 * (actions with no consenting characters)</li>
 	 * <li>that is composed of actions which are explained for all the other
 	 * consenting characters who need to take them</li>
 	 * <li>is minimal, meaning none of the actions can be left out while still
@@ -423,6 +425,11 @@ public class StateNode implements Serializable, FiniteState {
 		// The plan must improve utility for its character.
 		if(!Comparison.GREATER_THAN.test(after.getUtility(solution.getCharacter()), this.getUtility(solution.getCharacter())))
 			return false;
+		// Either the plan is an author plan or it contains no author-only actions.
+		if(solution.getCharacter() != null)
+			for(Action action : solution)
+				if(action.consenting.size() == 0)
+					return false;
 		// Every action must be explained for all other consenting characters who take them.
 		StateNode current = this;
 		Solution<? extends Action> plan = solution;
