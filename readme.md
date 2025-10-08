@@ -311,7 +311,11 @@ testing and development.
     if it estimates the number of actions remaning to exceed the temporal limit.  
   - The JAR file produced by the build now goes to the "build/jar" directory
     instead of "lib".
+  - The JavaDoc produced by the build now goes to the "docs" directory instead
+    of "doc".
   - Other minor changes and bugs fixed.
+  - The license has changed from CC BY-NC 4.0 to GPL 3.0, since this license
+    better covers program code. This new license allows commercial use.
 - Version 0.7: First public release.
 
 ## Citation
