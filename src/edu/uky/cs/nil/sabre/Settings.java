@@ -80,4 +80,6 @@ public class Settings {
 	
 	/** The comment associated with a newly defined problem by default */
 	public static final String DEFAULT_PROBLEM_COMMENT = "";
+	
+	private Settings() {}
 }

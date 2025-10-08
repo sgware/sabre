@@ -42,6 +42,13 @@ public class ArrayRange extends Range {
 	/** The number of entries currently in the array */
 	private int size = 0;
 	
+	/**
+	 * Constructs a new array range.
+	 */
+	public ArrayRange() {
+		// default constructor
+	}
+	
 	@Override
 	public int size() {
 		return size;

@@ -456,4 +456,6 @@ public class Main {
 		System.out.println("  actions:    " + problem.actions.size());
 		System.out.println("  triggers:   " + problem.triggers.size());
 	}
+	
+	private Main() {}
 }

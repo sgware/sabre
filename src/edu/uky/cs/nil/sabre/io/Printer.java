@@ -33,6 +33,13 @@ public class Printer {
 	private final HashMap<Class<?>, ObjectPrinter<?>> printers = new HashMap<>();
 	
 	/**
+	 * Constructs a new printer with no configuration.
+	 */
+	public Printer() {
+		// default constructor
+	}
+	
+	/**
 	 * Finds the {@link ObjectPrinter object printer} associated with the given
 	 * {@link Class Java class}, or if there is no association for that class,
 	 * the object printer associated with the class's superclass or one of its

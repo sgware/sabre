@@ -13,7 +13,7 @@
 			doctitle="Sabre Narrative Planner Documentation"
 			classpath="."
 			sourcepath="src"
-			destdir="doc"
+			destdir="docs"
 			packagenames="
 				edu.uky.cs.nil.sabre,
 				edu.uky.cs.nil.sabre.util,
@@ -28,7 +28,7 @@
 				edu.uky.cs.nil.sabre.hg
 			"
 			access="protected"
-			source="11"
+			source="16"
 			use="true"
 			author="true"
 			version="true"

@@ -418,4 +418,6 @@ public class Utilities {
 			return "0ms";
 		return string;
 	}
+	
+	private Utilities() {}
 }

@@ -9,7 +9,7 @@ import edu.uky.cs.nil.sabre.util.ImmutableList;
  * @author Stephen G. Ware
  */
 public abstract class Lookahead implements Pattern {
-
+	
 	/**
 	 * Searches a list of tokens for the first occurrence of a {@link Keyword
 	 * keyword}, and if it is found, returns the list starting at that token.
@@ -74,5 +74,12 @@ public abstract class Lookahead implements Pattern {
 				tokens = tokens.rest;
 		}
 		return null;
+	}
+	
+	/**
+	 * Constructs a new lookahead pattern.
+	 */
+	public Lookahead() {
+		// default constructor
 	}
 }

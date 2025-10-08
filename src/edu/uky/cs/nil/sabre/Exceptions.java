@@ -658,4 +658,6 @@ public class Exceptions {
 	public static final IllegalStateException wrongType(Object object, String type) {
 		return new IllegalStateException("Expected \"" + object + "\" to be " + type + " but it was not.");
 	}
+	
+	private Exceptions() {}
 }

@@ -124,4 +124,6 @@ public class Grounder {
 			}
 		}
 	}
+	
+	private Grounder() {}
 }

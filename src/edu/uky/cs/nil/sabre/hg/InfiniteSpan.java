@@ -41,7 +41,14 @@ public class InfiniteSpan extends Span {
 	
 	/** Serial version ID */
 	private static final long serialVersionUID = Settings.VERSION_UID;
-
+	
+	/**
+	 * Constructs a new infinite span.
+	 */
+	public InfiniteSpan() {
+		// default constructor
+	}
+	
 	@Override
 	protected Value setCost(Value value, double cost) {
 		if(getCost(Comparison.EQUAL_TO, value) > cost) {

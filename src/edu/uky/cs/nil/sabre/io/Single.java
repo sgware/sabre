@@ -10,6 +10,13 @@ import edu.uky.cs.nil.sabre.util.ImmutableList;
  * @author Stephen G. Ware
  */
 public abstract class Single extends Terminal {
+	
+	/**
+	 * Constructs a new single terminal symbol pattern.
+	 */
+	public Single() {
+		// default constructor
+	}
 
 	@Override
 	public ParseTree match(Parser parser, ImmutableList<Token> tokens) throws ParseException {

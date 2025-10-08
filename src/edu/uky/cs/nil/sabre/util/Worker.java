@@ -319,4 +319,6 @@ public abstract class Worker {
 	public static final void run(Runner runner) {
 		run(runner, DEFAULT_FREQUENCY, DEFAULT_TIME_UNIT);
 	}
+	
+	private Worker() {}
 }

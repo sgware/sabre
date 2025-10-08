@@ -216,4 +216,6 @@ public class FluentExplicitizer {
 		Signature signature = new Signature(character.name + "_" + trigger.signature.name, trigger.signature.arguments);
 		return new Trigger(signature, trigger.precondition.prepend(character).toPrecondition(), trigger.effect.prepend(character).toEffect(), trigger.comment);
 	}
+	
+	private FluentExplicitizer() {}
 }
