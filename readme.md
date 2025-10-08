@@ -286,16 +286,17 @@ Professor of Computer Science at the University of Kentucky. Development of
 Sabre was sponsored in part by two grants from the US National Science
 Foundation, #2145153 and #1911053.
 
-Sabre is released under the Creative Commons Attribution-NonCommercial 4.0
-International license. This means you are free to share, remix, and add to this
-software for non-commercial projects as long as you give credit to the original
-creators. See the license file for details. The University of Kentucky retains
-all right not specifically granted.
+Sabre is released under the GNU General Public License version 3.0 (GPL 3). This
+means you are free to share and modify this software, even for commercial
+purposes, as long as you give credit to the original creators and you also
+release your modifications under the GPL 3 license. See the license file for
+details. The University of Kentucky retains all right not specifically granted.
 
-To license Sabre for a commercial project, contact the University of Kentucky
-Office of Technology Commercialization at <otcinfo@uky.edu>.
+To license Sabre for project not compatible with the terms of the GPL license,
+contact the University of Kentucky Office of Technology Commercialization at
+<otcinfo@uky.edu>.
 
-Special thanks to Rachelyn Farrell PhD and Cory Siler for their help with
+Special thanks to Rachelyn Farrell PhD and Molly Siler for their help with
 testing and development.
 
 ## Version History
