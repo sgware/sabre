@@ -158,7 +158,7 @@ public class Variable implements Parameter {
 	@Override
 	public Expression negate() {
 		if(isBoolean())
-			return new Conditional<>(this, False.FALSE, True.TRUE);
+			return new Comparison(Comparison.EQUAL_TO, this, False.FALSE);
 		else
 			return Parameter.super.negate();
 	}

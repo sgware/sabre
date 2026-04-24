@@ -286,20 +286,39 @@ Professor of Computer Science at the University of Kentucky. Development of
 Sabre was sponsored in part by two grants from the US National Science
 Foundation, #2145153 and #1911053.
 
-Sabre is released under the Creative Commons Attribution-NonCommercial 4.0
-International license. This means you are free to share, remix, and add to this
-software for non-commercial projects as long as you give credit to the original
-creators. See the license file for details. The University of Kentucky retains
-all right not specifically granted.
+Sabre is released under the GNU General Public License version 3.0 (GPL 3). This
+means you are free to share and modify this software, even for commercial
+purposes, as long as you give credit to the original creators and you also
+release your modifications under the GPL 3 license. See the license file for
+details. The University of Kentucky retains all right not specifically granted.
 
-To license Sabre for a commercial project, contact the University of Kentucky
-Office of Technology Commercialization at <otcinfo@uky.edu>.
+To license Sabre for project not compatible with the terms of the GPL license,
+contact the University of Kentucky Office of Technology Commercialization at
+<otcinfo@uky.edu>.
 
-Special thanks to Rachelyn Farrell PhD and Cory Siler for their help with
+Special thanks to Rachelyn Farrell PhD and Molly Siler for their help with
 testing and development.
 
 ## Version History
 
+- Version 0.8:
+  - Redefined "temporal depth," and "plan length" for progression search and
+    added the concept of "explanation depth".
+  - Fixed and improved the state graph.
+  - State nodes and action edges in the state graph now have a method to check
+    the validity of a solution.
+  - The relaxed plan heuristic now has a method to return the plan it generates.
+  - The max graph heuristic is admissible, so it now returns positive infinity
+    if it estimates the number of actions remaning to exceed the temporal limit.  
+  - The order in which ties are broken during search has been slightly modified.
+    Lower temporal depth is now preferred over lower epistemic depth.
+  - The JAR file produced by the build now goes to the "build/jar" directory
+    instead of "lib".
+  - The JavaDoc produced by the build now goes to the "docs" directory instead
+    of "doc".
+  - Other minor changes and bugs fixed.
+  - The license has changed from CC BY-NC 4.0 to GPL 3.0, since this license
+    better covers program code. This new license allows commercial use.
 - Version 0.7: First public release.
 
 ## Citation

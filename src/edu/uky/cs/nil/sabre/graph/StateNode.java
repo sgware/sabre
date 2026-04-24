@@ -8,11 +8,15 @@ import edu.uky.cs.nil.sabre.Event;
 import edu.uky.cs.nil.sabre.Exceptions;
 import edu.uky.cs.nil.sabre.FiniteState;
 import edu.uky.cs.nil.sabre.Fluent;
+import edu.uky.cs.nil.sabre.Plan;
 import edu.uky.cs.nil.sabre.Settings;
+import edu.uky.cs.nil.sabre.Solution;
 import edu.uky.cs.nil.sabre.Trigger;
 import edu.uky.cs.nil.sabre.Utilities;
+import edu.uky.cs.nil.sabre.logic.Comparison;
+import edu.uky.cs.nil.sabre.logic.Parameter;
+import edu.uky.cs.nil.sabre.logic.True;
 import edu.uky.cs.nil.sabre.logic.Value;
-import edu.uky.cs.nil.sabre.util.Unique;
 
 /**
  * A state node represents an assignment of a {@link Value value} to every
@@ -28,35 +32,35 @@ import edu.uky.cs.nil.sabre.util.Unique;
  * 
  * @author Stephen G. Ware
  */
-public class StateNode implements Serializable, Unique, FiniteState {
+public class StateNode implements Serializable, FiniteState {
 
 	/** Serial version ID */
 	private static final long serialVersionUID = Settings.VERSION_UID;
 	
-	/** The graph to which this node belongs */
+	/** The state graph to which this node belongs */
 	public final StateGraph graph;
 	
 	/** A unique, sequential ID number for this node in the graph */
-	public final int id;
+	public final long id;
 	
 	/**
 	 * The values for each of the fluents tracked by this graph, where the
 	 * value at index i is the value for the fluent at index i in {@link
 	 * StateGraph#fluents graph's set of fluents}
 	 */
-	Value[] values;
-	
-	/** The first temporal edge that has this node as its parent */
-	TemporalEdge temporalOut = null;
-	
-	/** The first temporal edge that has this node as its child */
-	TemporalEdge temporalIn = null;
+	protected Value[] values;
 	
 	/** The first epistemic edge that has this node as its parent */
-	EpistemicEdge epistemicOut = null;
+	private EpistemicEdge epistemicOut = null;
 	
 	/** The first epistemic edge that has this node as its child */
-	EpistemicEdge epistemicIn = null;
+	private EpistemicEdge epistemicIn = null;
+	
+	/** The first temporal edge that has this node as its parent */
+	private TemporalEdge temporalOut = null;
+	
+	/** The first temporal edge that has this node as its child */
+	private TemporalEdge temporalIn = null;
 	
 	/**
 	 * Constructs a new state node with a given ID number and set of values.
@@ -65,50 +69,30 @@ public class StateNode implements Serializable, Unique, FiniteState {
 	 * @param id a unique sequential ID number
 	 * @param values the values of each of the graph's fluents
 	 */
-	StateNode(StateGraph graph, int id, Value[] values) {
+	StateNode(StateGraph graph, long id, Value[] values) {
 		this.graph = graph;
 		this.id = id;
 		this.values = values;
 	}
 	
-	/**
-	 * Constructs a new permanent state node from a {@link TemporaryNode
-	 * temporary} or {@link InitialNode initial} state node.
-	 * 
-	 * @param temporary the non-permanent state node this permanent node will
-	 * replace
-	 */
-	StateNode(StateNode temporary) {
-		this(temporary.graph, temporary.graph.states.size(), temporary.values);
-		copy(this, temporary.epistemicOut);
-		graph.states.put(new StateKey(this), this);
-	}
-	
-	private static final void copy(StateNode parent, EpistemicEdge edge) {
-		if(edge != null) {
-			copy(parent, (EpistemicEdge) edge.nextOut);
-			new EpistemicEdge(parent, edge.label, edge.child);
-		}
+	@Override
+	public String toString() {
+		return Long.toString(id);
 	}
 	
 	@Override
 	public int hashCode() {
-		return id;
-	}
-	
-	@Override
-	public String toString() {
-		return Integer.toString(id);
+		return Long.hashCode(id);
 	}
 
 	@Override
 	public Value getValue(Fluent fluent) {
 		if(fluent.characters.size() == 0) {
-			Integer index = graph.index.get(fluent);
+			Integer index = graph.index.apply(fluent);
 			if(index == null)
 				throw Exceptions.notDefined("Fluent", fluent.toString());
 			else
-				return values[index.intValue()];
+				return values[index];
 		}
 		else
 			return getBeliefs((Character) fluent.characters.get(0)).getValue(fluent.removeFirstCharacter());
@@ -123,66 +107,32 @@ public class StateNode implements Serializable, Unique, FiniteState {
 	}
 	
 	/**
-	 * Returns a {@link EdgeIterable collection} of all {@link TemporalEdge
-	 * temporal edges} in the graph that have this node as their {@link
-	 * Edge#parent parent}.
+	 * Returns the utility value of the given character in the state represented
+	 * by this node, where utility is a numeric representation of how satisfied
+	 * the character is with the current state.
 	 * 
-	 * @return a collection of temporal nodes with this node as parent
+	 * @param character the character whose utility value is desired
+	 * @return the character's utility value in this state
 	 */
-	public EdgeIterable<TemporalEdge> getTemporalChildren() {
-		return new EdgeIterable<>(temporalOut, Edge.OUT);
+	public Value getUtility(Character character) {
+		if(character == null)
+			return graph.utility.evaluate(this);
+		else
+			return graph.utilities.get(character).evaluate(this);
 	}
 	
 	/**
-	 * Returns a {@link TemporalEdge temporal edge} that has this node as its
-	 * {@link Edge#parent parent} and a given {@link Event event} as its {@link
-	 * TemporalEdge#label label}, if one exists in the graph. The {@link
-	 * Edge#child child} of the edge will be the state of the world after
-	 * taking the given event in the state represented by this node. If the
-	 * edge could exist but does not, this method will not create it. See
-	 * {@link #after(Action)}.
-	 * 
-	 * @param event an event which can occur in this state
-	 * @return the temporal edge with this node as its parent, the given event
-	 * as its label, and the state after this event as its child, or null if no
-	 * such edge has been created yet
-	 */
-	public TemporalEdge getTemporalChild(Event event) {
-		return (TemporalEdge) find(event, temporalOut);
-	}
-	
-	void removeTemporalChild(TemporalEdge edge) {
-		temporalOut = (TemporalEdge) remove(edge, temporalOut, Edge.OUT);
-	}
-	
-	/**
-	 * Returns a {@link EdgeIterable collection} of all {@link TemporalEdge
-	 * temporal edges} that have this node as the {@link Edge#child child} in
-	 * the graph. If edges could exist but do not, this method will not create
-	 * them.
-	 * 
-	 * @return all temporal edges with this node as the child
-	 */
-	public EdgeIterable<TemporalEdge> getTemporalParents() {
-		return new EdgeIterable<>(temporalIn, Edge.IN);
-	}
-	
-	void removeTemporalParent(TemporalEdge edge) {
-		temporalIn = (TemporalEdge) remove(edge, temporalIn, Edge.IN);
-	}
-	
-	/**
-	 * Returns a {@link EdgeIterable collection} of all {@link EpistemicEdge
-	 * epistemic edges} that have this node as the {@link Edge#parent parent}
-	 * in the graph. There will always be exactly as many edges as there are
-	 * {@link StateGraph#characters characters tracked by the graph}. These
-	 * edges represent the state of the world these characters believe to be
-	 * that case when the actual state is this node.
+	 * Returns a collection of all {@link EpistemicEdge epistemic edges} that
+	 * have this node as the {@link Edge#parent parent} in the graph. There will
+	 * always be exactly as many edges as there are {@link StateGraph#characters
+	 * characters tracked by the graph}. These edges represent the state of the
+	 * world these characters believe to be the case when the actual state is
+	 * this node.
 	 * 
 	 * @return all epistemic edges with this node as the parent
 	 */
-	public EdgeIterable<EpistemicEdge> getEpistemicChildren() {
-		return new EdgeIterable<>(epistemicOut, Edge.OUT);
+	public Iterable<EpistemicEdge> getEpistemicChildren() {
+		return () -> new EdgeIterator<>(Edge.OUT, epistemicOut);
 	}
 	
 	/**
@@ -199,26 +149,155 @@ public class StateNode implements Serializable, Unique, FiniteState {
 	 * label, and the character's beliefs as the child
 	 */
 	public EpistemicEdge getEpistemicChild(Character character) {
-		return (EpistemicEdge) find(character, epistemicOut);
-	}
-	
-	void removeEpistemicChild(Edge edge) {
-		epistemicOut = (EpistemicEdge) remove(edge, epistemicOut, Edge.OUT);
+		return findOutEdge(epistemicOut, character);
 	}
 	
 	/**
-	 * Returns a {@link EdgeIterable collection} of all {@link EpistemicEdge
-	 * epistemic edges} that have this node as the {@link Edge#child child} in
-	 * the graph.
+	 * Adds an epistemic edge to this node's epistemic children.
+	 * 
+	 * @param edge the epistemic edge to add
+	 */
+	void addOutEdge(EpistemicEdge edge) {
+		epistemicOut = addEdge(Edge.OUT, epistemicOut, edge);
+	}
+	
+	/**
+	 * Removes an epistemic edge to this node's epistemic children.
+	 * 
+	 * @param edge the epistemic edge to remove
+	 */
+	void removeOutEdge(EpistemicEdge edge) {
+		epistemicOut = removeEdge(Edge.OUT, epistemicOut, edge);
+	}
+	
+	/**
+	 * Returns a collection of all {@link EpistemicEdge epistemic edges} that
+	 * have this node as the {@link Edge#child child} in the graph.
 	 * 
 	 * @return all epistemic edges with this node as the child
 	 */
-	public EdgeIterable<EpistemicEdge> getEpistemicParents() {
-		return new EdgeIterable<>(epistemicIn, Edge.IN);
+	public Iterable<EpistemicEdge> getEpistemicParents() {
+		return () -> new EdgeIterator<>(Edge.IN, epistemicIn);
 	}
 	
-	void removeEpistemicParent(EpistemicEdge edge) {
-		epistemicIn = (EpistemicEdge) remove(edge, epistemicIn, Edge.IN);
+	/**
+	 * Adds an epistemic edge to this node's epistemic parents.
+	 * 
+	 * @param edge the epistemic edge to add
+	 */
+	void addInEdge(EpistemicEdge edge) {
+		epistemicIn = addEdge(Edge.IN, epistemicIn, edge);
+	}
+	
+	/**
+	 * Removes an epistemic edge from this node's epistemic parents.
+	 * 
+	 * @param edge the epistemic edge to remove
+	 */
+	void removeInEdge(EpistemicEdge edge) {
+		epistemicIn = removeEdge(Edge.IN, epistemicIn, edge);
+	}
+	
+	/**
+	 * Returns a collection of all {@link TemporalEdge temporal edges} in the
+	 * graph that have this node as their {@link Edge#parent parent}.
+	 * 
+	 * @return a collection of temporal nodes with this node as parent
+	 */
+	public Iterable<TemporalEdge> getTemporalChildren() {
+		return () -> new EdgeIterator<>(Edge.OUT, temporalOut);
+	}
+	
+	/**
+	 * Returns a {@link TemporalEdge temporal edge} that has this node as its
+	 * {@link Edge#parent parent} and a given {@link Event event} as its {@link
+	 * TemporalEdge#label label}, if one exists in the graph. The {@link
+	 * Edge#child child} of the edge will be the state of the world after
+	 * taking the given event in the state represented by this node. If the
+	 * edge could exist but does not, this method will not create it. See
+	 * {@link #getAfter(Action)}.
+	 * 
+	 * @param event an event which can occur in this state
+	 * @return the temporal edge with this node as its parent, the given event
+	 * as its label, and the state after this event as its child, or null if no
+	 * such edge has been created yet
+	 */
+	public TemporalEdge getTemporalChild(Event event) {
+		return findOutEdge(temporalOut, event);
+	}
+	
+	/**
+	 * Adds a temporal edge to this node's temporal children.
+	 * 
+	 * @param edge the temporal edge to add
+	 */
+	void addOutEdge(TemporalEdge edge) {
+		temporalOut = addEdge(Edge.OUT, temporalOut, edge);
+	}
+	
+	/**
+	 * Removes a temporal edge to this node's temporal children.
+	 * 
+	 * @param edge the temporal edge to remove
+	 */
+	void removeOutEdge(TemporalEdge edge) {
+		temporalOut = removeEdge(Edge.OUT, temporalOut, edge);
+	}
+	
+	/**
+	 * Returns a collection of all {@link TemporalEdge temporal edges} that have
+	 * this node as the {@link Edge#child child} in the graph. If edges could
+	 * exist but do not, this method will not create them.
+	 * 
+	 * @return all temporal edges with this node as the child
+	 */
+	public Iterable<TemporalEdge> getTemporalParents() {
+		return () -> new EdgeIterator<>(Edge.IN, temporalIn);
+	}
+	
+	/**
+	 * Adds a temporal edge to this node's temporal parents.
+	 * 
+	 * @param edge the temporal edge to add
+	 */
+	void addInEdge(TemporalEdge edge) {
+		temporalIn = addEdge(Edge.IN, temporalIn, edge);
+	}
+	
+	/**
+	 * Removes a temporal edge from this node's temporal parents.
+	 * 
+	 * @param edge the temporal edge to remove
+	 */
+	void removeInEdge(TemporalEdge edge) {
+		temporalIn = removeEdge(Edge.IN, temporalIn, edge);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static final <E extends Edge> E findOutEdge(E first, Object label) {
+		if(first == null)
+			return null;
+		else if(Utilities.equals(first.label, label))
+			return first;
+		else
+			return findOutEdge((E) Edge.OUT.getNext(first), label);
+	}
+	
+	private static final <E extends Edge> E addEdge(Edge.Group group, E first, E toAdd) {
+		group.setNext(toAdd, first);
+		return toAdd;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static final <E extends Edge> E removeEdge(Edge.Group group, E first, E toRemove) {
+		if(first == null)
+			return null;
+		else if(first.equals(toRemove))
+			return (E) group.getNext(first);
+		else {
+			group.setNext(first, removeEdge(group, group.getNext(first), toRemove));
+			return first;
+		}
 	}
 	
 	/**
@@ -235,15 +314,26 @@ public class StateNode implements Serializable, Unique, FiniteState {
 	 * @param action the action whose effect will modify this state
 	 * @return the state after applying the action's effect
 	 */
-	public StateNode after(Action action) {
-		return after((Event) action);
+	public StateNode getAfter(Action action) {
+		return getAfter((Event) action);
 	}
 	
-	StateNode after(Event event) {
-		TemporalEdge edge = getTemporalChild(event);
-		if(edge == null)
-			edge = new TemporalEdge(this, event, new TemporaryNode(this, event)).resolve();
-		return edge.child;
+	final StateNode getAfter(Event event) {
+		TemporalEdge temporal = getTemporalChild(event);
+		if(temporal != null)
+			return temporal.child;
+		else {
+			boolean clean = graph.newEdges.isEmpty();
+			StateNode child = new EventNode(this, event);
+			new TemporalEdge(this, event, child);
+			for(Character character : graph.characters)
+				child.getBeliefs(character);
+			if(clean) {
+				graph.clean();
+				child = child.intern();
+			}
+			return child;
+		}
 	}
 	
 	/**
@@ -253,70 +343,139 @@ public class StateNode implements Serializable, Unique, FiniteState {
 	 * epistemically accessible state), applies its effect, and then
 	 * recursively does the same thing in the resulting state, stopping when no
 	 * more triggers can occur. This method should generally be called after
-	 * {@link #after(Action)} to find the state of the world after taking an
+	 * {@link #getAfter(Action)} to find the state of the world after taking an
 	 * action.
 	 * 
 	 * @return the state after applying all relevant triggers
 	 */
-	public StateNode afterTriggers() {
-		TemporalEdge edge = temporalOut;
-		while(edge != null) {
-			if(edge.label instanceof Trigger)
-				return edge.child.afterTriggers();
-			else if(edge.label == null) {
-				if(edge.child == this)
-					return resolve();
-				else
-					return edge.child.afterTriggers();
-			}
-			edge = (TemporalEdge) edge.nextOut;
+	public StateNode getAfterTriggers() {
+		for(TemporalEdge temporal : getTemporalChildren()) {
+			if(temporal.label instanceof Trigger)
+				return temporal.child.getAfterTriggers();
+			else if(temporal.label == null && temporal.child == this)
+				return this;
+			else if(temporal.label == null)
+				return temporal.child.getAfterTriggers();
 		}
-		Trigger trigger = graph.triggers.getAny(this);
-		if(trigger != null)
-			return after(trigger).afterTriggers();
-		StateNode after = after(null);
-		if(after == this)
-			return this;
-		else
-			return after.afterTriggers();
+		return getAfter(graph.triggers.getAny(this)).getAfterTriggers();
 	}
 	
 	/**
-	 * Returns a permanent state node from the graph which is equivalent to
-	 * this state node. If this node is a permanent state, this method returns
-	 * this node; otherwise, it finds or creates a permanent state node in the
-	 * graph and returns it.
+	 * Returns the state after taking each action in a plan, if the actions are
+	 * possible. If all actions are possible, this method takes them one at a
+	 * time, adding nodes and edges to the graph if necessary and applying
+	 * triggers after each action. If any action's precondition is not met in
+	 * that state where it needs to be taken, this method returns null.
 	 * 
-	 * @return a permanent state node equivalent to this state node
+	 * @param plan the plan to execute
+	 * @return a node representing the state after taking all actions in the
+	 * plan, or null if some action's precondition is not met
 	 */
-	StateNode resolve() {
+	public StateNode getAfter(Plan<? extends Action> plan) {
+		StateNode after = this;
+		for(Action action : plan) {
+			if(action.getPrecondition().evaluate(after).equals(True.TRUE))
+				after = after.getAfter(action).getAfterTriggers();
+			else
+				return null;
+		}
+		return after;
+	}
+	
+	/**
+	 * Returns a permanent node in the graph which is equivalent to this node.
+	 * 
+	 * @return an equivalent permanent node
+	 */
+	StateNode intern() {
 		return this;
 	}
 	
-	private static final Edge find(Object label, Edge first) {
-		while(first != null) {
-			if(Utilities.equals(label, first.label))
-				return first;
-			first = first.nextOut;
+	/**
+	 * Determines whether a {@link Solution solution} is valid in this state.
+	 * A valid solution:
+	 * <ul>
+	 * <li>is a non-empty plan</li>
+	 * <li>that can be executed in this state</li>
+	 * <li>that raises the utility of {@link Solution#getCharacter() its
+	 * character}</li>
+	 * <li>that is either for the author or contains no author-only actions
+	 * (actions with no consenting characters)</li>
+	 * <li>that is composed of actions which are explained for all the other
+	 * consenting characters who need to take them</li>
+	 * <li>is minimal, meaning none of the actions can be left out while still
+	 * achieving the same or better utility</li>
+	 * </ul>
+	 * This method may add nodes and edges to the graph.
+	 * 
+	 * @param solution the solution to test in this state
+	 * @return true if the solution is valid in this state, false otherwise
+	 */
+	public boolean isValid(Solution<? extends Action> solution) {
+		// The plan must not be null.
+		if(solution == null)
+			return false;
+		// The plan must not be empty.
+		if(solution.size() == 0)
+			return false;
+		// The plan must be possible.
+		StateNode after = getAfter(solution);
+		if(after == null)
+			return false;
+		// The plan must improve utility for its character.
+		if(!Comparison.GREATER_THAN.test(after.getUtility(solution.getCharacter()), this.getUtility(solution.getCharacter())))
+			return false;
+		// Either the plan is an author plan or it contains no author-only actions.
+		if(solution.getCharacter() != null)
+			for(Action action : solution)
+				if(action.consenting.size() == 0)
+					return false;
+		// Every action must be explained for all other consenting characters who take them.
+		StateNode current = this;
+		Solution<? extends Action> plan = solution;
+		while(plan.size() > 0) {
+			TemporalEdge edge = current.getTemporalChild(plan.get(0));
+			if(!current.isExplainedForOthers(plan))
+				return false;
+			current = edge.child.getAfterTriggers();
+			plan = plan.next();
 		}
-		return null;
+		// The plan must be minimal.
+		return isMinimal(solution);
 	}
 	
-	private static final Edge remove(Edge edge, Edge first, Edge.Group group) {
-		if(first == null)
-			return null;
-		else if(first == edge)
-			return group.getNext(first);
-		Edge previous = first;
-		Edge current = group.getNext(first);
-		while(current != null) {
-			if(current == edge) {
-				group.setNext(previous, group.getNext(current));
-				break;
-			}
-			previous = current;
-			current = group.getNext(current);
+	private final boolean isMinimal(Solution<? extends Action> solution) {
+		Value goal = getAfter(solution).getUtility(solution.getCharacter());
+		return !findSubsequence(this, solution, goal, false);
+	}
+	
+	static final boolean findSubsequence(StateNode state, Solution<? extends Action> solution, Value goal, boolean shorter) {
+		if(solution.size() == 0)
+			return shorter && Comparison.GREATER_THAN_OR_EQUAL_TO.test(state.getUtility(solution.getCharacter()), goal);
+		else if(findSubsequence(state, solution.next(), goal, true))
+			return true;
+		else {
+			Action action = solution.get(0);
+			if(shorter && (!action.getPrecondition().evaluate(state).equals(True.TRUE) || !state.isExplainedForOthers(solution)))
+				return false;
+			return findSubsequence(state.getAfter(action).getAfterTriggers(), solution.next(), goal, shorter);
 		}
-		return first;
+	}
+	
+	private boolean isExplainedForOthers(Solution<? extends Action> solution) {
+		Action action = solution.get(0);
+		for(Parameter consenting : action.consenting) {
+			if(!Utilities.equals(consenting, solution.getCharacter()) && consenting instanceof Character other) {
+				StateNode beliefs = getBeliefs(other);
+				if(!action.getPrecondition().evaluate(beliefs).equals(True.TRUE))
+					return false;
+				beliefs.getAfter(action);
+				TemporalEdge branch = beliefs.getTemporalChild(action);
+				Solution<? extends Action> explanation = solution.getExplanation(other);
+				if(!branch.isValid(explanation))
+					return false;
+			}
+		}
+		return true;
 	}
 }

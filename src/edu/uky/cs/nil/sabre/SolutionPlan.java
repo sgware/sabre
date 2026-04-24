@@ -64,11 +64,16 @@ public class SolutionPlan<A extends Action> implements Solution<A> {
 	@Override
 	public boolean equals(Object other) {
 		if(getClass().equals(other.getClass())) {
+			if(this == other)
+				return true;
 			SolutionPlan<?> otherPlan = (SolutionPlan<?>) other;
 			if(first.equals(otherPlan.first)) {
-				for(Parameter character : first.consenting)
-					if(!Utilities.equals(getExplanation((Character) character), otherPlan.getExplanation((Character) other)))
+				for(Parameter character : first.consenting) {
+					if(getExplanation((Character) character) == this && otherPlan.getExplanation((Character) character) == otherPlan)
+						continue;
+					if(!Utilities.equals(getExplanation((Character) character), otherPlan.getExplanation((Character) character)))
 						return false;
+				}
 				return rest.equals(otherPlan.rest);
 			}
 		}
@@ -117,15 +122,21 @@ public class SolutionPlan<A extends Action> implements Solution<A> {
 	public Solution<A> next() {
 		return rest;
 	}
-
+	
 	@Override
-	public Solution<A> getExplanation(Character character) {
-		if(Utilities.equals(getCharacter(), character))
-			return this;
-		for(Solution<A> explanation : explanations)
-			if(Utilities.equals(explanation.getCharacter(), character))
-				return explanation;
-		return null;
+	public Solution<A> getExplanation(int index, Character character) {
+		if(index >= size())
+			throw Exceptions.indexOutOfBounds(index);
+		else if(index == 0) {
+			if(Utilities.equals(getCharacter(), character))
+				return this;
+			for(Solution<A> explanation : explanations)
+				if(Utilities.equals(explanation.getCharacter(), character))
+					return explanation;
+			return null;
+		}
+		else
+			return rest.getExplanation(index - 1, character);
 	}
 
 	@Override

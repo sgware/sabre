@@ -3,15 +3,21 @@ package edu.uky.cs.nil.sabre.graph;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.Function;
 
 import edu.uky.cs.nil.sabre.Character;
 import edu.uky.cs.nil.sabre.FiniteState;
 import edu.uky.cs.nil.sabre.Fluent;
+import edu.uky.cs.nil.sabre.Mapping;
+import edu.uky.cs.nil.sabre.Problem;
 import edu.uky.cs.nil.sabre.Settings;
 import edu.uky.cs.nil.sabre.Trigger;
+import edu.uky.cs.nil.sabre.Utilities;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
 import edu.uky.cs.nil.sabre.etree.EventSet;
+import edu.uky.cs.nil.sabre.logic.Expression;
 import edu.uky.cs.nil.sabre.logic.Value;
+import edu.uky.cs.nil.sabre.util.ImmutableArray;
 import edu.uky.cs.nil.sabre.util.ImmutableSet;
 
 /**
@@ -69,6 +75,15 @@ public class StateGraph implements Serializable {
 	/** The set of all characters whose beliefs are represented in this graph */
 	public final ImmutableSet<Character> characters;
 	
+	/** A numeric expression that the author will try to maximize */
+	public final Expression utility;
+	
+	/**
+	 * A mapping, for each {@link #characters character}, to a numeric
+	 * expression that the character will try to maximize
+	 */
+	public final Mapping<Expression> utilities;
+	
 	/**
 	 * The set of all ground triggers which can occur in the states represented
 	 * in this graph
@@ -76,7 +91,7 @@ public class StateGraph implements Serializable {
 	public final EventSet<Trigger> triggers;
 	
 	/**
-	 * The first state represented by this graph (usually a problem's initial
+	 * The first state represented by this graph (such as a problem's initial
 	 * state)
 	 */
 	public final StateNode root;
@@ -85,110 +100,182 @@ public class StateGraph implements Serializable {
 	 * A mapping of each {@link #fluents fluent} to its integer index in the set
 	 * of fluents
 	 */
-	final HashMap<Fluent, Integer> index = new HashMap<>();
+	final Function<Fluent, Integer> index;
 	
 	/**
-	 * A hashtable containing every unique combination of fluents values used in
-	 * the nodes of this graph
+	 * A list of newly created nodes that need to be checked during {@link
+	 * #clean() cleaning} to determine if they are duplicates
 	 */
-	final HashMap<ValuesKey, Value[]> values = new HashMap<>();
+	final ArrayList<TemporaryNode> newNodes = new ArrayList<>();
 	
 	/**
-	 * A hashtable for storing all state nodes in the graph which uses a hash
+	 * A list of newly created edges that need to be checked during {@link
+	 * #clean() cleaning} to determine if they need to be modified
+	 */
+	final ArrayList<Edge> newEdges = new ArrayList<>();
+	
+	/**
+	 * A reusable list of node pairs used when {@link NodeKey#equals(Object)
+	 * detecting duplicate states}
+	 */
+	final PairList pairs = new PairList();
+	
+	/**
+	 * A hashtable containing every unique combination of fluent {@link
+	 * StateNode#values values} used in the nodes of this graph
+	 */
+	private final HashMap<ImmutableArray<Value>, Value[]> values = new HashMap<>();
+	
+	/**
+	 * A hashtable for storing all state nodes in the graph that uses a hash
 	 * function which can detect when nodes are duplicates
 	 */
-	final HashMap<StateKey, StateNode> states = new HashMap<>();
+	private final HashMap<NodeKey, StateNode> nodes = new HashMap<>();
 	
-	/**
-	 * A reusable list of node pairs used when checking whether two nodes are
-	 * duplicates
-	 */
-	final ArrayList<StateNode> pairs = new ArrayList<>();
+	/** The next ID number to assign to a permanent state node */
+	private long nextID = 0;
 	
 	/**
 	 * Constructs a new state graph that tracks a given set of fluents,
-	 * characters, and triggers, and which starts with a given state.
+	 * characters, utility functions, and triggers, and which starts in a given
+	 * state.
 	 * 
 	 * @param fluents the set of all fluents to be tracked by the state nodes
 	 * in this graph
 	 * @param characters the set of all characters whose beliefs are to be
 	 * represented in this graph
+	 * @param utility the author's utility expression
+	 * @param utilities utility expressions for each character
 	 * @param triggers the set of all ground triggers which can occur in the
 	 * states represented by this graph
 	 * @param root the first state to be represented by this graph (usually but
 	 * not necessarily the {@link edu.uky.cs.nil.sabre.InitialState initial
 	 * state} of a {@link edu.uky.cs.nil.sabre.Problem planning problem}
+	 * @throws edu.uky.cs.nil.sabre.FormatException if any fluents, utility
+	 * expressions, or triggers are not ground
 	 */
 	@SuppressWarnings("unchecked")
-	public StateGraph(ImmutableSet<? extends Fluent> fluents, ImmutableSet<Character> characters, EventSet<? extends Trigger> triggers, FiniteState root) {
+	public StateGraph(ImmutableSet<? extends Fluent> fluents, ImmutableSet<Character> characters, Expression utility, Mapping<? extends Expression> utilities, Iterable<? extends Trigger> triggers, FiniteState root) {
 		this.fluents = fluents.apply(object -> {
 			Fluent fluent = (Fluent) object;
 			while(fluent.characters.size() > 0)
 				fluent = fluent.removeFirstCharacter();
 			return fluent;
 		}).cast(Fluent.class);
-		for(int i=0; i<this.fluents.size(); i++)
-			this.index.put(this.fluents.get(i), i);
+		for(Fluent fluent : this.fluents)
+			fluent.mustBeGround();
+		HashMap<Fluent, Integer> index = new HashMap<>();
+		for(Fluent fluent : this.fluents)
+			index.put(fluent, index.size());
+		this.index = fluent -> index.get(fluent);
 		this.characters = characters;
-		this.triggers = (EventSet<Trigger>) triggers;
-		this.root = new InitialNode(this, root, new HashMap<>()).resolve();
+		utility.mustBeGround();
+		this.utility = utility;
+		for(Character character : characters)
+			utilities.get(character).mustBeGround();
+		this.utilities = utilities.cast(Expression.class);
+		for(Trigger trigger : triggers)
+			trigger.mustBeGround();
+		this.triggers = triggers instanceof EventSet ? (EventSet<Trigger>) triggers : new EventSet<Trigger>(Utilities.toArray(triggers, Trigger.class));
+		InitialNode initial = new InitialNode(this, root, new HashMap<>());
+		clean();
+		this.root = initial.intern();
 	}
 	
 	/**
 	 * Constructs a new state graph based on a compiled planning problem.
-	 * The fluent tracked in this graph will be {@link CompiledProblem#fluents
-	 * all fluent defined by the problem}. The characters tracked in this graph
+	 * The fluent tracked in this graph will be {@link Problem#fluents all
+	 * fluents defined by the problem}. The characters tracked in this graph
 	 * will be {@link edu.uky.cs.nil.sabre.Problem#universe all characters
-	 * defined by the problem's universe}. The triggers tracked will be {@link
-	 * CompiledProblem#triggers all trigger defined by the problem}. The root
-	 * state will be the {@link CompiledProblem#initial problem's initial
-	 * state}.
+	 * defined by the problem's universe}. The utilities will be {@link
+	 * Problem#utilities the utilities defined in the problem}. The triggers
+	 * tracked will be {@link CompiledProblem#triggers all triggers defined by
+	 * the problem}. Note that all element of the problem must be
+	 * ground.
+	 * 
+	 * @param problem the planning problem
+	 * @param root the first state to be represented by this graph
+	 */
+	public StateGraph(Problem problem, FiniteState root) {
+		this(
+			problem.fluents,
+			problem.universe.characters,
+			problem.utility,
+			problem.utilities,
+			problem.triggers,
+			root
+		);
+	}
+	
+	/**
+	 * Constructs a new state graph {@link #StateGraph(Problem, FiniteState)
+	 * based on a compiled planning problem} and using the {@link
+	 * CompiledProblem#start problem's state state} as the graph's {@link #root
+	 * root state}.
 	 * 
 	 * @param problem the compiled planning problem
 	 */
 	public StateGraph(CompiledProblem problem) {
-		this(problem.fluents, problem.universe.characters, problem.triggers, problem.start);
-	}
-	
-	@Override
-	public String toString() {
-		return "[" + getClass().getSimpleName() + ": " + states.size() + " nodes]";
+		this(problem, problem.start);
 	}
 	
 	/**
-	 * Interns a combination of values for the fluents tracked in this graph.
+	 * This method is called after {@link TemporaryNode temporary nodes} and
+	 * edges have been added to the graph to detect and replace duplicate nodes
+	 * and remap the edges to and from those nodes.
+	 */
+	final void clean() {
+		// Intern all value arrays first.
+		for(TemporaryNode node : newNodes)
+			node.clean();
+		// Find replacements for any nodes which are duplicate states.
+		for(TemporaryNode node : newNodes)
+			node.intern();
+		newNodes.clear();
+		// Update all new edges.
+		for(int i=0; i<newEdges.size(); i++)
+			newEdges.get(i).clean();
+		newEdges.clear();
+	}
+	
+	/**
+	 * Interns a unique combination of values for the fluents tracked in this
+	 * graph.
 	 * 
 	 * @param values an array of values
 	 * @return the first such array of these values ever interned by this graph
 	 */
-	Value[] resolve(Value[] values) {
-		ValuesKey key = new ValuesKey(values);
-		values = this.values.get(key);
-		if(values == null) {
-			values = key.values;
-			this.values.put(key, values);
+	final Value[] intern(Value[] values) {
+		ImmutableArray<Value> key = new ImmutableArray<>(values);
+		Value[] interned = this.values.get(key);
+		if(interned == null) {
+			interned = values;
+			this.values.put(key, interned);
 		}
-		return values;
+		return interned;
 	}
 	
 	/**
-	 * Interns a state node in the graph. If a state that is a duplicate of the
-	 * given node exists, the earlier existing node will be returned.
-	 * Otherwise, a new permanent state node will be constructed and added to
-	 * the graph. If this method is called with {@link a permanent StateNode
-	 * state node}, it will always return that node, but when this method is
-	 * called with a {@link TemporaryNode temporary state node}, it will
-	 * return a permanent state node that is equivalent to the temporary node.
-	 * This method is used to detect and avoid duplicate state nodes.
+	 * For a given temporary node, this method finds and returns an existing
+	 * permanent node in the graph that is equivalent or, if no such node
+	 * exists, creates a new permanent node from the temporary node and returns
+	 * it. The temporary node's epistemic edges will be recreated in the new
+	 * permanent node, since these are required to intern the node in a
+	 * hashtable, but the temporal nodes will not be recreated in this method;
+	 * recreating temporary nodes happens when edges are {@link #clean()
+	 * cleaned}.
 	 * 
-	 * @param state a state node which will be interned in the graph
-	 * @return a permanent state node in the graph
+	 * @param node the temporary node whose equivalent permanent node is desired
+	 * @return a permanent node equivalent to the given temporary node
 	 */
-	StateNode resolve(StateNode state) {
-		StateKey key = new StateKey(state);
-		state = states.get(key);
-		if(state == null)
-			state = new StateNode(key.node);
-		return state;
+	final StateNode intern(TemporaryNode node) {
+		StateNode interned = nodes.get(new NodeKey(node));
+		if(interned == null) {
+			interned = new StateNode(this, nextID++, node.values);
+			for(int i=characters.size()-1; i>=0; i--)
+				new EpistemicEdge(interned, characters.get(i), node.getBeliefs(characters.get(i)));
+			nodes.put(new NodeKey(interned), interned);
+		}
+		return interned;
 	}
 }

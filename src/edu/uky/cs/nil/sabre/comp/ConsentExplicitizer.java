@@ -68,4 +68,6 @@ public class ConsentExplicitizer {
 			problem.comment
 		);
 	}
+	
+	private ConsentExplicitizer() {}
 }

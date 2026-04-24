@@ -26,29 +26,22 @@ public class EpistemicEdge extends Edge {
 	EpistemicEdge(StateNode parent, Character label, StateNode child) {
 		super(parent, label, child);
 		this.label = label;
-		nextOut = parent.epistemicOut;
-		parent.epistemicOut = this;
-		nextIn = child.epistemicIn;
-		child.epistemicIn = this;
+		// Initially, nodes only track out edges. In edges are only tracked once
+		// both the parent and child are known to be permanent nodes.
+		parent.addOutEdge(this);
 	}
-
+	
 	@Override
-	EpistemicEdge resolve() {
-		StateNode parent = this.parent.resolve();	
-		StateNode child = this.child.resolve();
-		if(parent != this.parent || child != this.child) {
-			this.parent.removeEpistemicChild(this);
-			this.child.removeEpistemicParent(this);
-			EpistemicEdge existing = parent.getEpistemicChild(label);
-			if(existing != null && existing.child == child)
-				return existing;
-			else if(existing != null) {
-				existing.parent.removeEpistemicChild(existing);
-				existing.child.removeEpistemicParent(existing);
-			}
-			return new EpistemicEdge(parent, label, child);
+	void clean() {
+		// If the child node has been replaced, delete this edge and create a
+		// new one pointing to the replacement child.
+		if(child.intern() != child) {
+			parent.removeOutEdge(this);
+			new EpistemicEdge(parent, label, child.intern());
 		}
-		else
-			return this;
+		// If this edge goes from a permanent node to a permanent node, register
+		// the edge in the child node's list of in edges.
+		else if(parent.intern() == parent)
+			child.addInEdge(this);
 	}
 }

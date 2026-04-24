@@ -15,6 +15,13 @@ public abstract class Range implements CostSet {
 	/** Serial version ID */
 	private static final long serialVersionUID = Settings.VERSION_UID;
 	
+	/**
+	 * Constructs a new, empty range.
+	 */
+	public Range() {
+		// default constructor
+	}
+	
 	@Override
 	public String toString() {
 		return Utilities.DEFAULT_PRINTER.toString(this);

@@ -62,4 +62,6 @@ public class ActionShuffler {
 			problem.comment
 		);
 	}
+	
+	private ActionShuffler() {}
 }

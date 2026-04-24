@@ -1,10 +1,17 @@
 package edu.uky.cs.nil.sabre.prog;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import edu.uky.cs.nil.sabre.Action;
+import edu.uky.cs.nil.sabre.Character;
+import edu.uky.cs.nil.sabre.Plan;
+import edu.uky.cs.nil.sabre.State;
+import edu.uky.cs.nil.sabre.TailPlan;
 import edu.uky.cs.nil.sabre.comp.CompiledProblem;
+import edu.uky.cs.nil.sabre.hg.ActionNode;
 import edu.uky.cs.nil.sabre.hg.ArithmeticNode;
 import edu.uky.cs.nil.sabre.hg.ClauseNode;
 import edu.uky.cs.nil.sabre.hg.DisjunctionNode;
@@ -26,7 +33,7 @@ import edu.uky.cs.nil.sabre.util.Worker.Status;
  * heuristic progression search}, which solves a relaxed version of the planning
  * problem and uses the cost of the solution to that relaxed problem as an
  * approximation of the cost of solving the real problem. This heuristic is
- * inspired by Jörg Hoffmann's Fast Forward heuristic.
+ * inspired by Jï¿½rg Hoffmann's Fast Forward heuristic.
  * <p>
  * The relaxed plan heuristic works initializing a {@link
  * edu.uky.cs.nil.sabre.hg.MaxGraph max heuristic graph} to the state it is
@@ -92,23 +99,47 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 	public String toString() {
 		return STRING;
 	}
-
+	
 	@Override
-	public <N> double evaluate(ProgressionNode<N> node) {
-		if(node.isExplained(node.getCharacter()))
-			return 0;
-		Value start = node.getUtility(node.getCharacter());
-		UtilityNode utility = graph.getUtility(node.getCharacter());
-		graph.initialize(node);
+	public double evaluate(State state, Character character) {
+		UtilityNode utility = graph.getUtility(character);
+		graph.initialize(state);
+		subgraph.clear();
+		cost = 0;
+		Value start = utility.getValue(0);
 		while(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY && graph.extend());
 		if(utility.getCost(Comparison.GREATER_THAN, start) == Double.POSITIVE_INFINITY)
 			return Double.POSITIVE_INFINITY;
 		else {
-			subgraph.clear();
-			cost = 0;
 			extract(utility, Comparison.GREATER_THAN, start);
 			return cost;
 		}
+	}
+	
+	/**
+	 * Returns a plan that is a solution to the relaxed problem. Recall that
+	 * the relaxed problem assumes that once a fact is true, it stays true
+	 * forever. The relaxed problem is unlikely to be a true solution to the
+	 * real problem, but it may approximate a solution to the real problem in
+	 * length and content. The relaxed plan does not account for character
+	 * intentions or beliefs.
+	 * <p>
+	 * This method returns the relaxed plan discovered the last time {@link
+	 * #evaluate(State, Character)} was called. If that method has not yet been
+	 * called, the relaxed plan will be empty.
+	 * 
+	 * @return a solution to the relaxed problem this heuristic solves
+	 */
+	public Plan<Action> getRelaxedPlan() {
+		ArrayList<ActionNode> actions = new ArrayList<>(cost);
+		for(Node node : subgraph)
+			if(node instanceof ActionNode)
+				actions.add((ActionNode) node);
+		Collections.sort(actions);
+		TailPlan<Action> plan = TailPlan.EMPTY;
+		for(ActionNode action : actions)
+			plan = plan.append(action.label);
+		return plan;
 	}
 	
 	/**
@@ -186,7 +217,7 @@ public class RelaxedPlanHeuristic extends GraphHeuristic.MaxGraphHeuristic {
 				double cost = arithmetic.left.getCost(i) + arithmetic.right.getCost(j);
 				if(cost < Double.POSITIVE_INFINITY) {
 					Value result = arithmetic.label.operator.calculate(left, right);
-					if(arithmetic.getCost(result) < Double.POSITIVE_INFINITY && (bestLeft == null || cost < bestCost)) {
+					if(arithmetic.getCost(result) < Double.POSITIVE_INFINITY && operator.test(result, value) && (bestLeft == null || cost < bestCost)) {
 						bestLeft = left;
 						bestRight = right;
 						bestCost = cost;

@@ -17,7 +17,7 @@ public class Settings {
 	public static final int MAJOR_VERSION_NUMBER = 0;
 	
 	/** The minor version number comes after the decimal point */
-	public static final int MINOR_VERSION_NUMBER = 7;
+	public static final int MINOR_VERSION_NUMBER = 8;
 	
 	/** The full version number (major + minor) as a string */
 	public static final String VERSION_STRING = MAJOR_VERSION_NUMBER + "." + MINOR_VERSION_NUMBER;
@@ -80,4 +80,6 @@ public class Settings {
 	
 	/** The comment associated with a newly defined problem by default */
 	public static final String DEFAULT_PROBLEM_COMMENT = "";
+	
+	private Settings() {}
 }

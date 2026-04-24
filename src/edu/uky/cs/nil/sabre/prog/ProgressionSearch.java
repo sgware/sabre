@@ -385,9 +385,8 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	}
 	
 	private final boolean checkLimits(SearchNode<?> node) {
-		int temporal = node.getTemporalOffset() + node.getTemporalDepth();
 		int limit = node.getEpistemicDepth() == 0 ? authorTemporalLimit : characterTemporalLimit;
-		return temporal < limit || limit == Planner.UNLIMITED_DEPTH;
+		return node.getExplanationDepth() < limit || limit == Planner.UNLIMITED_DEPTH;
 	}
 	
 	private final void expand(SearchNode<?> node, EventTree<CompiledAction> actions) {
@@ -535,6 +534,8 @@ public class ProgressionSearch extends Search<CompiledAction> {
 	 * <li>In case of a tie, the node with the lowest heuristic value is first.
 	 * </li>
 	 * <li>In case of a further tie, the node with the lowest {@link
+	 * SearchNode#getTemporalDepth() temporal depth} is first.</li>
+	 * <li>In case of a further tie, the node with the lowest {@link
 	 * SearchNode#getEpistemicDepth() epistemic depth} is first.</li>
 	 * <li>In case of a further tie, the {@link SearchNode#getRoot() root for
 	 * both nodes} {@link ProgressionSpace#compare(Object, Object) are
@@ -558,6 +559,9 @@ public class ProgressionSearch extends Search<CompiledAction> {
 		if(comparison != 0)
 			return comparison;
 		comparison = node1.getHeuristic() - node2.getHeuristic();
+		if(comparison != 0)
+			return comparison;
+		comparison = node1.getTemporalDepth() - node2.getTemporalDepth();
 		if(comparison != 0)
 			return comparison;
 		comparison = node1.getEpistemicDepth() - node2.getEpistemicDepth();

@@ -9,28 +9,27 @@ import edu.uky.cs.nil.sabre.Exceptions;
  * edges}.
  * 
  * @param <E> the type of edge returned by this iterator
- * @author Stephen
+ * @author Stephen G. Ware
  */
-public class EdgeIterator<E extends Edge> implements Iterator<E> {
+public final class EdgeIterator<E extends Edge> implements Iterator<E> {
 
-	private E edge;
 	private final Edge.Group group;
+	private Edge current;
 	
 	/**
 	 * Constructs a new edge iterator.
 	 * 
 	 * @param first the first edge in the list
-	 * @param group the group representing the type of edges to be iterated
-	 * over
+	 * @param group the group representing the type of edges to be iterated over
 	 */
-	EdgeIterator(E first, Edge.Group group) {
-		this.edge = first;
+	EdgeIterator(Edge.Group group, E first) {
 		this.group = group;
+		this.current = first;
 	}
 	
 	@Override
 	public boolean hasNext() {
-		return edge != null;
+		return current != null;
 	}
 
 	@Override
@@ -38,8 +37,8 @@ public class EdgeIterator<E extends Edge> implements Iterator<E> {
 	public E next() {
 		if(!hasNext())
 			throw Exceptions.iteratorOutOfElements();
-		E edge = this.edge;
-		this.edge = (E) group.getNext(this.edge);
-		return edge;
+		Edge next = current;
+		current = group.getNext(current);
+		return (E) next;
 	}
 }

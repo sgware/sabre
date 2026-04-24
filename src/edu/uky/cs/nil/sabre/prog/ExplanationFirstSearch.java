@@ -126,7 +126,7 @@ public class ExplanationFirstSearch extends ProgressionSearch {
 	 */
 	@Override
 	protected <N> boolean prune(SearchNode<N> node) {
-		if(node.getTemporalDepth() > 0) {
+		if(node.getTemporalDepth() > 0 && node.root != node) {
 			CompiledAction action = node.getAction();
 			for(int i=0; i<action.consenting.size(); i++) {
 				Character other = action.consenting.get(i);

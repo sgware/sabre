@@ -132,6 +132,13 @@ public class Main {
 	
 	/**
 	 * The abbreviation for {@link
+	 * edu.uky.cs.nil.sabre.prog.ProgressionCost#EXPLANATION the explanation
+	 * depth function}
+	 */
+	public static final String EXPLANATION_COST_OPTION = "x";
+	
+	/**
+	 * The abbreviation for {@link
 	 * edu.uky.cs.nil.sabre.prog.ProgressionCost#TEMPORAL the temporal depth
 	 * function} */
 	public static final String TEMPORAL_COST_OPTION = "t";
@@ -187,6 +194,7 @@ public class Main {
 		pad(COST_KEY + " OPTION") +						"how plan cost is measured; options include:\n" +
 		pad("   " + ZERO_COST_OPTION) +					"always zero\n" +
 		pad("   " + PLAN_SIZE_COST_OPTION) +			"number of actions in the plan\n" +
+		pad("   " + EXPLANATION_COST_OPTION) +			"number of actions in the explanation\n" +
 		pad("   " + TEMPORAL_COST_OPTION) +				"number of actions before the plan and in the plan (default)\n" +
 		pad(COST_WEIGHT_KEY + " NUMBER") +				"a weight to multiply the cost by\n" +
 		pad(HEURISTIC_KEY + " OPTION") +				"how distance to the goal is estimated; options include:\n" +
@@ -319,6 +327,7 @@ public class Main {
 		COST_KEY, ProgressionCostFactory.class,
 		(s, v) -> s.setCost(v),
 		TEMPORAL_COST_OPTION, ProgressionCostFactory.TEMPORAL,
+		EXPLANATION_COST_OPTION, ProgressionCostFactory.EXPLANATION,
 		PLAN_SIZE_COST_OPTION, ProgressionCostFactory.PLAN_SIZE,
 		ZERO_COST_OPTION, ProgressionCostFactory.ZERO
 	);
@@ -447,4 +456,6 @@ public class Main {
 		System.out.println("  actions:    " + problem.actions.size());
 		System.out.println("  triggers:   " + problem.triggers.size());
 	}
+	
+	private Main() {}
 }

@@ -175,52 +175,74 @@ public interface ProgressionNode<N> extends State {
 	}
 	
 	/**
-	 * Returns the temporal depth at which {@link #getRoot() this node's root}
-	 * started. When a branch is created to explain an action in the author's
-	 * plan (that is, any node with an {@link #getEpistemicDepth() epistemic
-	 * depth of 0}), that branch's root always begins at a temporal offset of 1
-	 * (which represents taking the action the root is trying to explain) and a
-	 * {@link #getTemporalDepth() temporal depth} of 0. When a branch is created
-	 * to explain a node with an epistemic depth greater than 0, that branch's
-	 * root's temporal offset will be the sum of the trunk's temporal offset
-	 * and the trunk's temporal depth.
-	 * <p>
-	 * For example, say a branch is created to explain an action that has been
-	 * added to the author's plan. The root of that branch (and all it
-	 * descendants) will have an epistemic depth of 1 and a temporal offset of
-	 * 1. That root will have a temporal depth of 0; its {@link
-	 * ProgressionSpace#getChild(Object, CompiledAction) children} will have a
-	 * temporal depth of 1; their children will have a temporal depth of 2, etc.
-	 * Consider a grandchild of that root node, meaning 2 actions have been
-	 * taken since the root state. The grandchild will have an epistemic depth
-	 * of 1 and a temporal offset of 1 (just like all the root's descendants),
-	 * but it will have a temporal depth of 2, representing the two actions. If
-	 * a branch is created to explain that grandchild, the root of that branch
-	 * will have an epistemic depth of 2 and a temporal offset of 3 (1 for the
-	 * trunk's temporal offset and 2 for the trunk's temporal depth).
-	 * <p>
-	 * The sum of a node's temporal offset and temporal depth must always be
-	 * less than or equal to the {@link ProgressionSearch#characterTemporalLimit
-	 * search's character temporal limit}. This means that plans formed at
-	 * epistemic depth 1 can have as many actions as the search's character
-	 * temporal limit, but plans formed at epistemic depth 2 can have at most
-	 * that many actions minus 1, and so on. Thus, a character temporal limit
-	 * also imposes a de facto epistemic limit of the same depth.
+	 * Returns the number of actions that have been taken since the initial
+	 * state, regardless of this node's {@link #getEpistemicDepth() epistemic
+	 * depth}. For author nodes (epistemic depth 0), this value is the same as
+	 * {@link #getPlanLength() plan length}. For character nodes (epistemic
+	 * depth > 0), this value includes any actions that occurred before the
+	 * {@link #getRoot() root node} (even if the character did not observe
+	 * them), the action leading to the root node, and all actions that have
+	 * occurred since the root node.
 	 * 
-	 * @return the temporal depth at which this node's root started
-	 */
-	public int getTemporalOffset();
-	
-	/**
-	 * Returns the number of actions that have been taken since {@link
-	 * #getRoot() this node's root state}. See {@link #getTemporalOffset()} for
-	 * a description of the distinction between temporal offset and temporal
-	 * depth.
-	 * 
-	 * @return the number of actions that have been taken since this node's root
-	 * state
+	 * @return the number of actions taken since the initial state
 	 */
 	public int getTemporalDepth();
+	
+	/**
+	 * Returns the number of actions that have been taken since the explanation
+	 * this node is part of began. For author nodes ({@link #getEpistemicDepth()
+	 * epistemic depth} 0), this value is the same as {@link #getPlanLength()
+	 * plan length}. For nodes with epistemic depth 1 (nodes created to explain
+	 * author nodes), this value is also the same as plan length, regardless of
+	 * where in the author's plan the action being explained occurs, because
+	 * explanation length does not depend on the length of the author's plan.
+	 * For nodes with epistemic depth > 1, this value includes any actions taken
+	 * at lower epistemic depths.
+	 * <p>
+	 * For example, say the author's plan is actions A then B. After the second
+	 * action (B), explanation depth is the same as plan length, which is 2.
+	 * Now suppose a branch is created with B as the {@link #getTrunk() trunk}.
+	 * This branch has an epistemic depth of 1. That node will have an
+	 * explanation depth and plan length of 1 because action B is the first
+	 * action in the branch (action B and the state after taking it form the
+	 * root node of the new search). From that root, say two more actions C and
+	 * D are taken. The state after D has an explanation depth of 3 (the root B
+	 * + the two actions that have been taken since the root). Now suppose a
+	 * branch is created with D as the trunk and an epistemic depth of 2. From
+	 * there, two more actions E and F are taken. The state after F has a plan
+	 * length of 3 (the root D + the two actions that have been taken since the
+	 * root) but an explanation depth of 5, because it also counts actions B, C,
+	 * and D from epistemic depth 1.
+	 * <p>
+	 * Explanation depth is defined this way so that a search can have a {@link
+	 * edu.uky.cs.nil.sabre.search.Search#characterTemporalLimit character
+	 * temporal limit} which is different from its {@link
+	 * edu.uky.cs.nil.sabre.search.Search#authorTemporalLimit author temporal
+	 * limit} without creating an infinitely deep space.
+	 * <p>
+	 * A search will only expand an author node (epistemic depth 0) if its
+	 * explanation depth is less than the search's author temporal limit. A
+	 * search will only expand a character node (epistemic depth > 0) if its
+	 * explanation depth is less than the search's character temporal limit.
+	 * 
+	 * @return the number of actions taken since the explanation began
+	 */
+	public int getExplanationDepth();
+	
+	/**
+	 * Returns the number of actions that have been taken in the plan leading to
+	 * this node. The only node with a plan length of 0 is the author root node
+	 * of the search. The children of the author root node have a plan length of
+	 * 1, their children a plan length of 2, and so on. For character nodes
+	 * ({@link #getEpistemicDepth() epistemic depth} > 0), this number will
+	 * always be at least 1, because it will include the first action leading to
+	 * the search's {@link #getRoot() root node}. In other words, for character
+	 * nodes, the plan length is always 1 + the number of actions that have been
+	 * taken since the root node.
+	 * 
+	 * @return the number of actions taken in the plan to reach this node
+	 */
+	public int getPlanLength();
 	
 	/**
 	 * Returns the depth of nested theory of mind (what one {@link Character

@@ -34,9 +34,12 @@ public interface ProgressionCost {
 	
 	/**
 	 * A cost function that returns the {@link
-	 * ProgressionNode#getTemporalDepth() temporal depth} of the node it is
-	 * evaluation, which is equal to the number of actions that have been taken
-	 * since the root state of the search.
+	 * ProgressionNode#getPlanLength() length of the plan} that led to the state
+	 * represented by the node it is evaluating. For author nodes ({@link
+	 * ProgressionNode#getEpistemicDepth() epistemic depth} 0), this is the
+	 * number of actions that have been taken since the root of the search. For
+	 * character nodes (epistemic depth > 0), this is 1 (for the root) plus the
+	 * number of actions that have been taken since the root.
 	 */
 	public static final ProgressionCost PLAN_SIZE = new ProgressionCost() {
 
@@ -47,16 +50,44 @@ public interface ProgressionCost {
 		
 		@Override
 		public <N> double evaluate(ProgressionNode<N> node) {
-			return node.getTemporalDepth();
+			return node.getPlanLength();
 		}
 	};
 	
 	/**
-	 * A cost function that returns the sum of a node's {@link
-	 * ProgressionNode#getTemporalOffset() temporal offset} and {@link
-	 * ProgressionNode#getTemporalDepth() temporal depth}, which represent the
-	 * number of actions that have been taken since the root state as well as
-	 * the starting temporal depth of the root state.
+	 * A cost function that returns the {@link
+	 * ProgressionNode#getExplanationDepth() explanation depth} of the node it
+	 * is evaluating, which is the number of actions that have been taken since
+	 * the explanation this node is part of began. For nodes with {@link
+	 * ProgressionNode#getEpistemicDepth() epistemic depth} 0 and 1 (author nodes
+	 * and nodes created to explain author actions), this is the same
+	 * as the {@link ProgressionNode#getPlanLength() plan length}. For nodes
+	 * with epistemic depth > 1, this number includes actions that occurred in
+	 * the explanation as lower epistemic depths.
+	 */
+	public static final ProgressionCost EXPLANATION = new ProgressionCost() {
+
+		@Override
+		public String toString() {
+			return "explanation";
+		}
+		
+		@Override
+		public <N> double evaluate(ProgressionNode<N> node) {
+			return node.getExplanationDepth();
+		}
+	};
+	
+	/**
+	 * A cost function that returns the {@link
+	 * ProgressionNode#getTemporalDepth() temporal depth} of the the node it is
+	 * evaluating, which is the number of actions that have been taken since the
+	 * initial state. For author nodes ({@link
+	 * ProgressionNode#getEpistemicDepth() epistemic depth} 0), this is the same
+	 * as the {@link ProgressionNode#getPlanLength() plan length}. For character
+	 * nodes (epistemic depth > 0), this number includes all actions that have
+	 * occurred before the root of the search (even if the character did not
+	 * observe them), the root, and all actions since the root.
 	 */
 	public static final ProgressionCost TEMPORAL = new ProgressionCost() {
 
@@ -67,7 +98,7 @@ public interface ProgressionCost {
 		
 		@Override
 		public <N> double evaluate(ProgressionNode<N> node) {
-			return node.getTemporalOffset() + node.getTemporalDepth();
+			return node.getTemporalDepth();
 		}
 	};
 	

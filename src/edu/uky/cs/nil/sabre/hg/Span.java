@@ -20,6 +20,13 @@ public class Span extends ArrayRange {
 	/** Serial version ID */
 	private static final long serialVersionUID = Settings.VERSION_UID;
 	
+	/**
+	 * Constructs a new numeric span.
+	 */
+	public Span() {
+		// default constructor
+	}
+	
 	@Override
 	public double getCost(Operator operator, Value value) {
 		if(operator.equals(Comparison.EQUAL_TO))

@@ -82,14 +82,8 @@ public interface Solution<A extends Action> extends Serializable, Plan<A> {
 	public Solution<A> next();
 	
 	/**
-	 * Returns a {@link Solution solution} explaining how the first action in
-	 * this solution would contribute to increasing the given character's
-	 * utility. If the given character is {@link #getCharacter() this solution's
-	 * character}, this method returns this solution. If the given character is
-	 * not a consenting character to the first action or if no solution has been
-	 * {@link #setExplanation(Solution) set} for the given character, this
-	 * method returns null. If an explanation is returned, its first action will
-	 * be the same as the first action in this solution.
+	 * Returns {@link #getExplanation(int, Character) an explanation} for the
+	 * first action in this solution for the given character.
 	 * 
 	 * @param character the character for whom an explanation of this solution's
 	 * first action is desired
@@ -97,8 +91,31 @@ public interface Solution<A extends Action> extends Serializable, Plan<A> {
 	 * this solution will contribute to increasing their utility, or null if
 	 * the character is not a consenting character to the action or no
 	 * explanation has been set
+	 * @throws IndexOutOfBoundsException if this solution has no actions
+	 * @see #getExplanation(int, Character)
 	 */
-	public Solution<A> getExplanation(Character character);
+	public default Solution<A> getExplanation(Character character) {
+		return getExplanation(0, character);
+	}
+	
+	/**
+	 * Returns a {@link Solution solution} explaining how the action with the
+	 * given index will contribute to increasing the given character's utility.
+	 * If the given character is not a consenting character to the action, or if
+	 * no solution has been {@link #setExplanation(Solution) set} for the given
+	 * character, this method returns null. If an explanation is returned, its
+	 * first action will be the same as the action at the given index.
+	 * 
+	 * @param index that index of the action for which an explanation is desired
+	 * @param character the character for whom an explanation of the action is
+	 * desired
+	 * @return an explanation for how the character believes the action will
+	 * contribute to increasing their utility, or null if the character is not a
+	 * consenting character to the action or no explanation has been set
+	 * @throws IndexOutOfBoundsException if there is no action at the given
+	 * index
+	 */
+	public Solution<A> getExplanation(int index, Character character);
 	
 	/**
 	 * Adds an action to the beginning of this solution. Validity is not

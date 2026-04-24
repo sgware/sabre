@@ -202,12 +202,6 @@ public class Simplifier {
 		this.actions = compiler.getActions();
 		this.triggers = compiler.getTriggers();
 		this.initial = simplify(problem.initial);
-		FiniteState start = new StateGraph(problem.fluents, problem.universe.characters, problem.triggers, problem.start).root.afterTriggers();
-		HashMap<Fluent, Fluent> mapping = new HashMap<>();
-		for(Fluent fluent : problem.fluents)
-			if(reachable.apply(fluent) instanceof Fluent)
-				mapping.put(compiler.compile(fluent), fluent);
-		this.start = new StateGraph(fluents, problem.universe.characters, triggers, new MappedState(start, f -> mapping.get(f))).root;
 		this.utility = simplify(problem.utility);
 		status.update(2, 1);
 		Conditional<Disjunction<Clause<Precondition>>>[] utilities = new Conditional[problem.universe.characters.size()];
@@ -216,6 +210,26 @@ public class Simplifier {
 			status.update(2, 2 + character.id);
 		}
 		this.utilities = new CompiledMapping<>(utilities);
+		FiniteState start = new StateGraph(
+			problem.fluents,
+			problem.universe.characters,
+			problem.utility,
+			problem.utilities,
+			problem.triggers,
+			problem.start
+		).root.getAfterTriggers();
+		HashMap<Fluent, Fluent> mapping = new HashMap<>();
+		for(Fluent fluent : problem.fluents)
+			if(reachable.apply(fluent) instanceof Fluent)
+				mapping.put(compiler.compile(fluent), fluent);
+		this.start = new StateGraph(
+			this.fluents,
+			problem.universe.characters,
+			this.utility,
+			this.utilities,
+			this.triggers,
+			new MappedState(start, f -> mapping.get(f))
+		).root;
 	}
 	
 	private CompiledEvent simplify(CompiledEvent event) {

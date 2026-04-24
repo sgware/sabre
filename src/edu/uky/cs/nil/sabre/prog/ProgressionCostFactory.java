@@ -55,7 +55,26 @@ public interface ProgressionCostFactory extends Serializable {
 	
 	/**
 	 * A progression cost factory that always returns the {@link
-	 * ProgressionCost#TEMPORAL temporal cost}.
+	 * ProgressionCost#EXPLANATION explanation depth}.
+	 */
+	public static final ProgressionCostFactory EXPLANATION = new ProgressionCostFactory() {
+		
+		private static final long serialVersionUID = 1L;
+		
+		@Override
+		public String toString() {
+			return ProgressionCost.EXPLANATION.toString();
+		}
+
+		@Override
+		public ProgressionCost getCost(CompiledProblem problem, Status status) {
+			return ProgressionCost.EXPLANATION;
+		}
+	};
+	
+	/**
+	 * A progression cost factory that always returns the {@link
+	 * ProgressionCost#TEMPORAL temporal depth}.
 	 */
 	public static final ProgressionCostFactory TEMPORAL = new ProgressionCostFactory() {
 		
