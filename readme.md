@@ -310,6 +310,8 @@ testing and development.
   - The relaxed plan heuristic now has a method to return the plan it generates.
   - The max graph heuristic is admissible, so it now returns positive infinity
     if it estimates the number of actions remaning to exceed the temporal limit.  
+  - The order in which ties are broken during search has been slightly modified.
+    Lower temporal depth is now preferred over lower epistemic depth.
   - The JAR file produced by the build now goes to the "build/jar" directory
     instead of "lib".
   - The JavaDoc produced by the build now goes to the "docs" directory instead
