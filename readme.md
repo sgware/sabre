@@ -292,7 +292,7 @@ purposes, as long as you give credit to the original creators and you also
 release your modifications under the GPL 3 license. See the license file for
 details. The University of Kentucky retains all right not specifically granted.
 
-To license Sabre for project not compatible with the terms of the GPL license,
+To license Sabre for a project not compatible with the terms of the GPL license,
 contact the University of Kentucky Office of Technology Commercialization at
 <otcinfo@uky.edu>.
 
