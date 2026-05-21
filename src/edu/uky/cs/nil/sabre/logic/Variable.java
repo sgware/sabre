@@ -8,7 +8,6 @@ import edu.uky.cs.nil.sabre.Settings;
 import edu.uky.cs.nil.sabre.State;
 import edu.uky.cs.nil.sabre.Type;
 import edu.uky.cs.nil.sabre.Utilities;
-import edu.uky.cs.nil.sabre.util.ImmutableSet;
 
 /**
  * A variable is a placeholder for a {@link Value value}. It is defined by a
@@ -161,25 +160,6 @@ public class Variable implements Parameter {
 			return new Comparison(Comparison.EQUAL_TO, this, False.FALSE);
 		else
 			return Parameter.super.negate();
-	}
-	
-	@Override
-	public Conditional<Disjunction<Clause<Precondition>>> toValued() {
-		if(isBoolean())
-			return new Conditional<>(this, True.TRUE, False.FALSE).toValued();
-		else if(isNumber())
-			return Parameter.super.toValued();
-		else {
-			ImmutableSet<Value> values = type.getValues();
-			Expression[] conditions = new Expression[values.size() - 1];
-			Expression[] branches = new Expression[values.size()];
-			for(int i=0; i<conditions.length; i++) {
-				conditions[i] = new Comparison(Comparison.EQUAL_TO, this, values.get(i));
-				branches[i] = values.get(i);
-			}
-			branches[branches.length - 1] = values.get(values.size() - 1);
-			return new Conditional<>(conditions, branches).toValued();
-		}
 	}
 	
 	@Override
