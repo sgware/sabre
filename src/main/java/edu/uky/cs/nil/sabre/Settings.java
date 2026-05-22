@@ -17,14 +17,14 @@ public class Settings {
 	 * The major version number, which represents big changes that are not
 	 * backwards compatible with earlier major versions
 	 */
-	public static final int MAJOR_VERSION_NUMBER = 1;
+	public static final int MAJOR_VERSION_NUMBER = 0;
 	
 	/**
 	 * The minor version number, which represents added functionality that is
 	 * backwards compatible with earlier versions that have the same major
 	 * version number
 	 */
-	public static final int MINOR_VERSION_NUMBER = 0;
+	public static final int MINOR_VERSION_NUMBER = 8;
 	
 	/**
 	 * The patch version number, which represents bug fixes but no changes in
