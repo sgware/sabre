@@ -31,6 +31,39 @@ Sample problems and code to compare different configurations of Sabre can be
 found in a separate repository:
 https://github.com/sgware/sabre-benchmarks
 
+## Downloading and Compiling
+
+A pre-compiled JAR file can be
+[downloaded here](https://github.com/sgware/sabre/tree/main/build/jar).
+
+Sabre is written in pure Java with no dependencies. You can download and compile
+it from source using [Maven](http://maven.apache.org/) like this:
+```
+git clone https://github.com/sgware/sabre.git
+cd sabre
+mvn clean install
+```
+
+You can include Sabre as a dependency in another Maven project's `pom.xml`
+file like this:
+```
+<project>
+  ...
+  <dependencies>
+    <!-- Sabre -->
+    <dependency>
+      <groupId>edu.uky.cs.nil</groupId>
+      <artifactId>sabre</artifactId>
+      <version>0.8.0</version> <!-- use latest version -->
+    </dependency>
+  </dependencies>
+  ...
+</project>
+```
+
+The JavaDoc API documentation can be
+[found here](https://sgware.github.io/sabre/docs/).
+
 ## Sabre Problems
 
 An example problem:
@@ -301,7 +334,7 @@ testing and development.
 
 ## Version History
 
-- Version 0.8:
+- Version 0.8.0:
   - Redefined "temporal depth," and "plan length" for progression search and
     added the concept of "explanation depth".
   - Fixed and improved the state graph.
@@ -312,6 +345,7 @@ testing and development.
     if it estimates the number of actions remaning to exceed the temporal limit.  
   - The order in which ties are broken during search has been slightly modified.
     Lower temporal depth is now preferred over lower epistemic depth.
+  - Removed ANT build file and restructured the project using Maven.
   - The JAR file produced by the build now goes to the "build/jar" directory
     instead of "lib".
   - The JavaDoc produced by the build now goes to the "docs" directory instead
