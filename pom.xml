@@ -61,6 +61,19 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Make an executable JAR file. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>edu.uky.cs.nil.sabre.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
       <!-- Copy Javadoc into /docs for GitHub Pages. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -84,7 +97,7 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Copy the JAR file into the /jar folder. -->
+      <!-- Copy the JAR file into the /build/jar folder. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
