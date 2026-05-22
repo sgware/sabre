@@ -36,8 +36,16 @@ https://github.com/sgware/sabre-benchmarks
 A pre-compiled JAR file can be
 [downloaded here](https://github.com/sgware/sabre/tree/main/build/jar).
 
-Sabre is written in pure Java with no dependencies. You can download and compile
-it from source using [Maven](http://maven.apache.org/) like this:
+Sabre is written in pure Java with no dependencies. Assuming the Java JDK is on
+your path, you can download, compile, and run it from source like this:
+```
+git clone https://github.com/sgware/sabre.git
+cd sabre
+javac -sourcepath src/main/java -d bin src/main/java/edu/uky/cs/nil/sabre/Main.java
+java -cp bin edu.uky.cs.nil.sabre.Main
+```
+
+You can also compile it using [Maven](http://maven.apache.org/) like this:
 ```
 git clone https://github.com/sgware/sabre.git
 cd sabre
