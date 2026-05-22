@@ -1,0 +1,129 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <!-- Project Meta-Data -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>edu.uky.cs.nil</groupId>
+  <artifactId>sabre</artifactId>
+  <version>0.8.0</version>
+  <name>Sabre Narrative Planner</name>
+  <description>Sabre is a narrative planning platform that generates stories which meet the author's goals and only contain actions that make sense for the characters who take them.</description>
+  <!-- Properties -->
+  <properties>
+    <!-- UTF-8 Encoding -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Use Java 21 -->
+    <java.version>21</java.version>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.release>21</maven.compiler.release>
+  </properties>
+  <!-- Build -->
+  <build>
+    <!-- Resources -->
+    <resources>
+      <!-- Include Java source files in JAR file. -->
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.java</include>
+        </includes>
+      </resource>
+    </resources>
+    <!-- Plugins -->
+    <plugins>
+      <!-- Delete files and folders during clean phase. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/docs</directory>
+            </fileset>
+            <fileset>
+              <directory>${basedir}/build</directory>
+            </fileset>
+          </filesets>
+          <force>true</force>
+        </configuration>
+      </plugin>
+      <!-- Generate Javadoc. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.12.0</version>
+        <executions>
+          <execution>
+            <id>javadoc</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Make an executable JAR file. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.5.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>edu.uky.cs.nil.sabre.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- Copy Javadoc into /docs for GitHub Pages. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/docs</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>target/reports/apidocs</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Copy the JAR file into the /build/jar folder. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.9.0</version>
+        <executions>
+          <execution>
+            <id>copy-packaged</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <type>${project.packaging}</type>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${basedir}/build/jar</outputDirectory>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
