@@ -13,17 +13,31 @@ public class Settings {
 	/** The list of primary authors */
 	public static final String AUTHORS = "Stephen G. Ware";
 	
-	/** The major version number comes before the decimal points */
-	public static final int MAJOR_VERSION_NUMBER = 0;
-	
-	/** The minor version number comes after the decimal point */
-	public static final int MINOR_VERSION_NUMBER = 8;
-	
-	/** The full version number (major + minor) as a string */
-	public static final String VERSION_STRING = MAJOR_VERSION_NUMBER + "." + MINOR_VERSION_NUMBER;
+	/**
+	 * The major version number, which represents big changes that are not
+	 * backwards compatible with earlier major versions
+	 */
+	public static final int MAJOR_VERSION_NUMBER = 1;
 	
 	/**
-	 * A long encoding the version number which can be used as a serial version UID
+	 * The minor version number, which represents added functionality that is
+	 * backwards compatible with earlier versions that have the same major
+	 * version number
+	 */
+	public static final int MINOR_VERSION_NUMBER = 0;
+	
+	/**
+	 * The patch version number, which represents bug fixes but no changes in
+	 * functionality
+	 */
+	public static final int PATCH_VERSION_NUMBER = 0;
+	
+	/** The full version number (major + minor) as a string */
+	public static final String VERSION_STRING = MAJOR_VERSION_NUMBER + "." + MINOR_VERSION_NUMBER + "." + PATCH_VERSION_NUMBER;
+	
+	/**
+	 * A long encoding the major and minor version number which can be used as a
+	 * serial version UID
 	 */
 	public static final long VERSION_UID = java.nio.ByteBuffer.allocate(8).putInt(MAJOR_VERSION_NUMBER).putInt(MINOR_VERSION_NUMBER).getLong(0);
 	
