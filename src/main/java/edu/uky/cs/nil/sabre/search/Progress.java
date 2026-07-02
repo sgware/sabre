@@ -50,7 +50,7 @@ public class Progress<A extends Action> {
 		this.visitedBefore = search.getVisited();
 		this.maxVisited = search.searchLimit == Planner.UNLIMITED_NODES ? Long.MAX_VALUE : visitedBefore + search.searchLimit;
 		this.generatedBefore = search.getGenerated();
-		this.maxGenerated = search.spaceLimit == Planner.UNLIMITED_NODES ? Integer.MAX_VALUE : generatedBefore + search.spaceLimit;
+		this.maxGenerated = search.spaceLimit == Planner.UNLIMITED_NODES ? Long.MAX_VALUE : generatedBefore + search.spaceLimit;
 		this.timeBefore = System.currentTimeMillis();
 		this.maxTime = search.timeLimit == Planner.UNLIMITED_TIME ? Long.MAX_VALUE : timeBefore + search.timeLimit;
 	}
